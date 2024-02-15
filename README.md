@@ -14,9 +14,9 @@ The system could be adapted to use other interfaces that can provide a six degre
 
 ## Motivation
 
-![](/gifs/play_with_dog.gif) 
-
-![](/gifs/fold_shirt_cropped_372x270.gif) 
+| Single Robot Teleoperation                     | Bimanual Teleoperation                      |
+| ---------------------------------------------- | ------------------------------------------- |
+| ![](/gifs/play_with_dog.gif) | ![](/gifs/fold_shirt_cropped_372x270.gif) |
 
 Hello Robot provided code to teleoperate the first version of Stretch (the Stretch RE1) using a gamepad and a web interface. Both types of teleoperation have improved over the years with work from the Stretch community and Hello Robot. Gamepad teleoperation is simple and portable. Web-based teleoperation can be used over great distances and has been made accessible for people with disabilities. A notable disadvantage of these approaches is that they tend to favor slow single joint motions with a single arm.
 
@@ -28,19 +28,23 @@ You can see more bimanual teleoperation examples in a real home with ![this YouT
 
 You should start by cloning this repository. All of the commands below should be run from the command line in the root directory of the repository on your robot's computer. 
 
-### Buy or Build Your Tongs
-
-![](/images/camera_ring_light_and_stand.jpg)
-
-![](/images/left_and_right_tongs.jpg)
-
-![](/images/left_tongs_held_and_open.jpg)
-
-![](/images/left_tongs_held_and_closed.jpg)
+### Buy or Build Your Interface
 
 You can [buy tongs, a camera, a ring light, and a stand from Hello Robot Inc.](https://hello-robot.com/stretch-dex-teleop-kit)
 
 Alternatively, you can buy the components and build your own by following the [Stretch Dex Teleop Hardware Guide](https://docs.google.com/document/d/1Pom3P8vVNRhchLK_CTduoqQJ3y_TS0MYIIAxRl94ktU/edit?usp=sharing).
+
+You will need a camera, a ring light, and a stand as shown in the following photo. 
+
+<img src="/images/camera_ring_light_and_stand.jpg" width="30%">
+
+For a single robot, you will need a pair of tongs like those shown in the following two photos.
+<img src="/images/right_tongs_held_and_open.jpg" width="40%">
+<img src="/images/right_tongs_held_and_closed.jpg" width="40%">
+
+For bimanual manipulation, you will need two camera, two ring lights, two stands, left-hand tongs and right-hand tongs.
+<img src="/images/left_and_right_tongs.jpg" width="40%">
+
 
 ### Run the Installation Script
 
