@@ -70,7 +70,7 @@ python3 prepare_specialized_urdfs.py
 
 ### Set Up the Camera, Ring Light and Stand
 
-The camera stand should be placed on the ground, and the camera should be pointed straight up. The stand should be maximally extended, so that the camera and the ring light are as high off the ground as possible. 
+As shown in the photo above, the camera stand should be placed on the ground, and the camera should be pointed straight up. The stand should be at its minimum height. 
 
 The camera should be plugged into the robot's trunk using a USB extension cable. The ring light should not be plugged into the robot's trunk as it requires too much power - it can either be plugged into the robot's head, or externally.
 
