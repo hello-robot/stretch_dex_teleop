@@ -22,7 +22,7 @@ Hello Robot provided code to teleoperate the first version of Stretch (the Stret
 
 As shown in the GIFs above, Stretch Dex Teleop enables efficient bimanual multijoint motions. However, compared to gamepad and web-based teleoperation, it is more complex, less accessible, and currently only supports manipulation not navigation.
 
-You can see more bimanual teleoperation examples in a real home with [this YouTube video](https://www.youtube.com/watch?v=QtG8nJ78x2M).
+You can see more bimanual teleoperation examples in a real home in [this YouTube video](https://www.youtube.com/watch?v=QtG8nJ78x2M).
 
 ## Setting Up Dex Teleop
 
