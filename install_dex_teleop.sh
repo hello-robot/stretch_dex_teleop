@@ -1,8 +1,8 @@
 #!/bin/bash
 
 echo "Copy udev rule file for the Logitech Webcam C930e."
-echo "sudo cp ./99-hello-teleop-camera.rules /etc/udev/rules.d/"
-sudo cp ./99-hello-dexterous-teleop-camera.rules /etc/udev/rules.d/
+echo "sudo cp ./99-hello-dex-teleop-camera.rules /etc/udev/rules.d/"
+sudo cp ./99-hello-dex-teleop-camera.rules /etc/udev/rules.d/
 echo ""
 
 echo "Activate the new udev rule."

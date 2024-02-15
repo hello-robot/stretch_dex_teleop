@@ -4,7 +4,7 @@ import simple_ik as si
 import argparse
 import pprint as pp
 import loop_timer as lt
-import dexterous_teleop_parameters as dt
+import dex_teleop_parameters as dt
 from multiprocessing import shared_memory
 import os
 

@@ -4,7 +4,7 @@ import simple_ik as si
 import argparse
 import gripper_to_goal as gg
 import goal_from_teleop as gt
-import dexterous_teleop_parameters as dt
+import dex_teleop_parameters as dt
 import pprint as pp
 import loop_timer as lt
 

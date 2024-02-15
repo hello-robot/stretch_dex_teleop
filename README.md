@@ -52,7 +52,7 @@ For bimanual manipulation, you will need two camera, two ring lights, two stands
 After cloning the repository, run the following installation script found in the repository's root directory. 
 
 ```
-install_dexterous_teleop.sh
+install_dex_teleop.sh
 ```
 
 The installation script sets up a udev rule for a Logitech Webcam C930e, so that the camera can be reset each time you run dexterous teleoperation. This is a workaround to avoid low frame rates and errors in the camera settings.
@@ -145,7 +145,7 @@ After you've gotten everything setup, you can try out Dex Teleop. Make sure to s
 After setting everything up, run the following command without any command line arguments. **This will result in the robot moving at the slowest available speed while you ensure that everything is working properly and get used to using the teleoperation system.**
 
 ```
-python3 dexterous_teleop.py
+python3 dex_teleop.py
 ```
 
 ### When You're Ready, Try Fast Motions
@@ -153,7 +153,7 @@ python3 dexterous_teleop.py
 Once you are confident that you have the system correctly configured and have learned to use it at the slowest speed, you can run the following command to try it at the fastest available speed. **The robot will move fast, so be very careful!**
 
 ```
-python3 dexterous_teleop.py --fast
+python3 dex_teleop.py --fast
 ```
 
 ### Advanced: Multiprocessing with Shared Memory

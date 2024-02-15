@@ -3,11 +3,8 @@ from urdf_parser_py import urdf as ud
 import numpy as np
 import pprint
 from copy import deepcopy
-import dexterous_teleop_parameters as dt
+import dex_teleop_parameters as dt
 
-# also need to copy mesh files to the local directory
-# hello-robot@stretch-re2-2040:~/repos/stretch_dexterous_teleop$ cp -r ~/stretch_user/stretch-re2-2040/exported_urdf/meshes ./
-    
 def save_urdf_file(robot, file_name):
     urdf_string = robot.to_xml_string()
     print('Saving new URDF file to', file_name)
@@ -50,24 +47,6 @@ use_original_limits = True #False
 
 if use_original_limits:
     # Beware of gimbal lock if joint_wrist_pitch is too close to -90 deg
-    
-    ############################################################
-    # Joint limits from calibrated stretch.urdf for Stretch 3011
-    # January 7, 2023
-    #
-    # joint_wrist_yaw
-    #  lower="-1.75" upper="4.0"
-    #  -100.27 deg, 229.18 deg
-    #
-    # joint_wrist_pitch
-    #  lower="-1.57" upper="0.56"
-    #  -89.95 deg, 32.09 deg
-    #
-    # joint_wrist_roll
-    #  lower="-3.14" upper="3.14"
-    #  -179.91 deg, 179.90 deg
-    #
-    ############################################################
     
     ik_joint_limits = {
         'joint_mobile_base_translation' : (None, None),
@@ -306,95 +285,3 @@ for robot in [robot_rotary, robot_prismatic]:
 save_urdf_file(robot_rotary, 'stretch_base_rotation_ik_with_fixed_wrist.urdf')
 save_urdf_file(robot_prismatic, 'stretch_base_translation_ik_with_fixed_wrist.urdf')
 
-
-
-#######################################################################
-## NOTES
-#######################################################################
-
-
-####################################################
-# Consider changing the name
-#<robot name="stretch_description" version="1.0">
-
-
-####################################################
-
-# def delete_joint(name, robot):
-#     # WARNING: This does not work, probably because of xml_reflection
-#     print()
-#     print('len(robot.joints) before removal =', len(robot.joints))
-#     robot.joints.remove(robot.joint_map[name])
-#     print('len(robot.joints) after removal =', len(robot.joints))
-#     print()
-#     robot.joint_map.pop(name, None)
-#     robot.parent_map.pop(name, None)
-#     robot.child_map.pop(name, None)
-
-
-# def delete_link(name, robot):
-#     # WARNING: This does not work, probably because of xml_reflection
-#     print()
-#     print('len(robot.links) before removal =', len(robot.links))
-#     robot.links.remove(robot.link_map[name])
-#     print('len(robot.links) after removal =', len(robot.links))
-#     print()
-#     robot.link_map.pop(name, None)
-#     robot.parent_map.pop(name, None)
-#     robot.child_map.pop(name, None)
-
-# # WARNING: This has not been well tested
-# # Remove the telescoping joints in between
-# for j in removed_arm_joints:
-#     l = j.replace('joint', 'link')
-#     delete_link(l, robot)
-#     delete_joint(j, robot)
-
-
-####################################################
-## Excerpt from a representative Stretch URDF 
-
-# <joint name="joint_arm_l4" type="fixed">
-# <origin rpy="1.5708 -3.1019E-16 -1.5708" xyz="-0.25471 0 0"/>
-# <parent link="link_lift"/>
-# <child link="link_arm_l4"/>
-# <axis xyz="0 0 0"/>
-# </joint>
-
-# <joint name="joint_arm_l3" type="prismatic">
-# <origin rpy="3.5742E-16 3.2123E-16 -2.4565E-16" xyz="0 0 0.013"/>
-# <parent link="link_arm_l4"/>
-# <child link="link_arm_l3"/>
-# <axis xyz="0 0 1"/>
-# <!-- 0.13 = 0.52/4-->
-# <limit effort="100" lower="0.0" upper="0.13" velocity="1.0"/>
-# </joint>
-
-# <joint name="joint_arm_l2" type="prismatic">
-# <origin rpy="2.91385731014123E-16 4.44300759504684E-17 3.25691080516352E-16" xyz="0 0 0.013"/>
-# <parent link="link_arm_l3"/>
-# <child link="link_arm_l2"/>
-# <axis xyz="0 0 1"/>
-# <!-- 0.13 = 0.52/4-->
-# <limit effort="100" lower="0.0" upper="0.13" velocity="1.0"/>
-# </joint>
-
-# <joint name="joint_arm_l1" type="prismatic">
-# <origin rpy="7.41596560408007E-17 1.33876788296791E-16 -2.44545873596083E-16" xyz="0 0 0.013"/>
-# <parent link="link_arm_l2"/>
-# <child link="link_arm_l1"/>
-# <axis xyz="0 0 1"/>
-# <!-- 0.13 = 0.52/4-->
-# <limit effort="100" lower="0.0" upper="0.13" velocity="1.0"/>
-# </joint>
-
-# <joint name="joint_arm_l0" type="prismatic">
-# <origin rpy="-3.05317390622457E-16 -4.23236224076729E-16 -2.68425135229209E-17" xyz="0 0 -0.0137499999999938"/>
-# <parent link="link_arm_l1"/>
-# <child link="link_arm_l0"/>
-# <axis xyz="0 0 1"/>
-# <!-- 0.13 = 0.52/4-->
-# <limit effort="100" lower="0.0" upper="0.13" velocity="1.0"/>
-# </joint>
-
-#######################################################################

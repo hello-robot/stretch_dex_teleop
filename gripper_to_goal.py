@@ -11,7 +11,7 @@ import os
 import simple_ik as si
 import argparse
 import loop_timer as lt
-import dexterous_teleop_parameters as dt
+import dex_teleop_parameters as dt
 from multiprocessing import shared_memory
 import pprint as pp
 import robot_move as rm
@@ -295,7 +295,7 @@ class GripperToGoal:
                 if nan_in_configuration(new_goal_configuration): 
                     print()
                     print('******************************************************************')
-                    print('WARNING: dexterous_teleop: new_goal_configuration has a nan, so skipping execution on the robot')
+                    print('WARNING: dex_teleop: new_goal_configuration has a nan, so skipping execution on the robot')
                     print()
                     print('     new_goal_configuration =', new_goal_configuration)
                     print()

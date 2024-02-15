@@ -11,7 +11,7 @@ import sys
 from copy import deepcopy
 import time
 import webcam as wc
-import dexterous_teleop_parameters as dt
+import dex_teleop_parameters as dt
 
 
 def pixel_from_3d(xyz, camera_info):
