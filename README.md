@@ -30,9 +30,9 @@ You should start by cloning this repository. All of the commands below should be
 
 ### Buy or Build Your Interface
 
-You can [buy tongs, a camera, a ring light, and a stand from Hello Robot Inc.](https://hello-robot.com/stretch-dex-teleop-kit)
+**You can [buy tongs, a camera, a ring light, and a stand from Hello Robot Inc.](https://hello-robot.com/stretch-dex-teleop-kit)**
 
-Alternatively, you can buy the components and build your own by following the [Stretch Dex Teleop Hardware Guide](https://docs.google.com/document/d/1Pom3P8vVNRhchLK_CTduoqQJ3y_TS0MYIIAxRl94ktU/edit?usp=sharing).
+Alternatively, you can buy the components and build your own by following the **[Stretch Dex Teleop Hardware Guide](https://docs.google.com/document/d/1Pom3P8vVNRhchLK_CTduoqQJ3y_TS0MYIIAxRl94ktU/edit?usp=sharing)**.
 
 You will need a camera, a ring light, and a stand as shown in the following photo. 
 
@@ -40,8 +40,7 @@ You will need a camera, a ring light, and a stand as shown in the following phot
 
 For a single robot, you will need a pair of tongs like those shown in the following two photos.
 
-<img src="/images/right_tongs_held_and_open.jpg" width="40%">
-<img src="/images/right_tongs_held_and_closed.jpg" width="40%">
+| <img src="/images/right_tongs_held_and_open.jpg" width="40%"> | <img src="/images/right_tongs_held_and_closed.jpg" width="40%"> |
 
 For bimanual manipulation, you will need two camera, two ring lights, two stands, left-hand tongs and right-hand tongs.
 
@@ -159,7 +158,7 @@ python3 dexterous_teleop.py --fast
 
 ### Advanced: Multiprocessing with Shared Memory
 
-To achieve better performance, you can run Dexterous Teleoperation using two processes that communicate via shared memory.
+To achieve better performance, you can run Dex Teleop using two processes that communicate via shared memory.
 
 First, run the interface process in a terminal. This process observes ArUco markers with the webcam to create goals for the robot's gripper.
 
@@ -172,8 +171,6 @@ Second, run the robot process in a different terminal. This process receives gri
 ```
 python3 gripper_to_goal.py --multiprocessing --fast
 ```
-
-
 
 ## Acknowledgment
 
