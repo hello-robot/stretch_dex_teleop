@@ -172,6 +172,18 @@ Second, run the robot process in a different terminal. This process receives gri
 python3 gripper_to_goal.py --multiprocessing --fast
 ```
 
+### Advanced: Bimanual Dex Teleop
+
+To perform bimanual teleoperation, you can follow the instructions above on a second robot and use the "--left" command line argument. When run with "--left", the code will only respond to left-hand tongs, which have ArUco markers with ID numbers that are different from the right-hand tongs. 
+
+For example, for the left-hand robot, you can run the following command to try slow motion Dex Teleop.
+
+```
+python3 dex_teleop.py --left
+```
+
+
+
 ## Acknowledgment
 
 Blaine Matulevich has been extremely helpful throughout the development of Dex Teleop, including testing, providing feedback, discussing the system, and contributing ideas. The entire Hello Robot team provided essential support throughout, including helping with early versions of Stretch 3, which the entire company worked on intensely.
