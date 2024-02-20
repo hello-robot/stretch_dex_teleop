@@ -38,7 +38,7 @@ You will need a camera, a ring light, and a stand as shown in the following phot
 
 <img src="/images/camera_ring_light_and_stand.jpg" width="30%">
 
-For a single robot, you will need a pair of tongs like those shown in the following two photos.
+For a single robot, you will need right-hand tongs like those shown in the following two photos.
 
 | <img src="/images/right_tongs_held_and_open.jpg" width="40%"> | <img src="/images/right_tongs_held_and_closed.jpg" width="40%"> |
 
