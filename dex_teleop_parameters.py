@@ -52,7 +52,8 @@ lift_range_sliding_speed_multiplier = 10.0 #4.0
 lift_range_offset_change_per_timestep = 0.001 * lift_range_sliding_speed_multiplier
 
 
-dex_wrist_3_grip_range = 400.0
+# dex_wrist_3_grip_range = 400.0
+dex_wrist_3_grip_range = 1.2 #rad # Aloha Gripper
 dex_wrist_grip_range = 200.0
 
 

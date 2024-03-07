@@ -165,8 +165,8 @@ class GripperToGoal:
             # INPUT: grip_width between 0.0 and 1.0
         
             if (grip_width is not None) and (grip_width > -1000.0): 
-                new_goal_configuration['aloha_gripper'] = self.grip_range * (grip_width - 0.5)                    
-
+                # new_goal_configuration['aloha_gripper'] = self.grip_range * (grip_width - 0.5) 
+                new_goal_configuration['aloha_gripper'] = self.grip_range * grip_width # aloha changes
 
             ##################################################
             # INPUT: x_axis, y_axis, z_axis
