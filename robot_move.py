@@ -49,7 +49,7 @@ class RobotMove:
                         'joint_wrist_yaw': ('wrist_yaw', {'v_r': 3.0, 'a_r': 10}),
                         'joint_wrist_pitch': ('wrist_pitch', {'v_r': 3.0, 'a_r': 10.0}),
                         'joint_wrist_roll': ('wrist_roll', {'v_r': 4.5, 'a_r': 12}),
-                        'stretch_gripper':  ('stretch_gripper', {'v_r': 12, 'a_r': 18})
+                        'aloha_gripper':  ('aloha_gripper', {'v_r': 12, 'a_r': 18})
                     }
                 elif speed == 'fastest_stretch_3':
                     #'joint_lift': (None, {'v_m': 0.13, 'a_m': 1.0}),
@@ -60,7 +60,7 @@ class RobotMove:
                         'joint_wrist_yaw': ('wrist_yaw', {'v_r': 3.0, 'a_r': 10}),
                         'joint_wrist_pitch': ('wrist_pitch', {'v_r': 3.0, 'a_r': 10.0}),
                         'joint_wrist_roll': ('wrist_roll', {'v_r': 4.5, 'a_r': 12}),
-                        'stretch_gripper':  ('stretch_gripper', {'v_r': 12, 'a_r': 18})
+                        'aloha_gripper':  ('aloha_gripper', {'v_r': 12, 'a_r': 18})
                     }
 
                 joint_functions = {
@@ -70,7 +70,7 @@ class RobotMove:
                     'joint_wrist_yaw': robot.end_of_arm.move_to,
                     'joint_wrist_pitch': robot.end_of_arm.move_to,
                     'joint_wrist_roll': robot.end_of_arm.move_to,
-                    'stretch_gripper' : robot.end_of_arm.move_to
+                    'aloha_gripper' : robot.end_of_arm.move_to
                     }
 
                 f = joint_functions
@@ -109,7 +109,7 @@ class RobotMove:
                 roll_v = roll_speed['vel']
                 roll_a = roll_speed['accel']
 
-                gripper_speed = self.params['stretch_gripper']['motion'][speed]
+                gripper_speed = self.params['aloha_gripper']['motion'][speed]
                 gripper_v = gripper_speed['vel']
                 gripper_a = gripper_speed['accel']
 
@@ -128,7 +128,7 @@ class RobotMove:
                     'joint_wrist_yaw': partial(robot.end_of_arm.move_to, 'wrist_yaw', v_r=yaw_v, a_r=yaw_a),
                     'joint_wrist_pitch': partial(robot.end_of_arm.move_to, 'wrist_pitch', v_r=pitch_v, a_r=pitch_a),
                     'joint_wrist_roll': partial(robot.end_of_arm.move_to, 'wrist_roll', v_r=roll_v, a_r=roll_a),
-                    'stretch_gripper' : partial(robot.end_of_arm.move_to, 'stretch_gripper', v_r=gripper_v, a_r=gripper_a)
+                    'aloha_gripper' : partial(robot.end_of_arm.move_to, 'aloha_gripper', v_r=gripper_v, a_r=gripper_a)
                 }
 
                 move_to_settings = {
@@ -138,7 +138,7 @@ class RobotMove:
                     'joint_wrist_yaw': ('wrist_yaw', {'joint': 'wrist_yaw','v_r':yaw_v, 'a_r':yaw_a}),
                     'joint_wrist_pitch': ('wrist_pitch', {'joint': 'wrist_pitch','v_r':pitch_v, 'a_r':pitch_a}),
                     'joint_wrist_roll': ('wrist_roll', {'joint': 'wrist_roll', 'v_r':roll_v, 'a_r':roll_a}),
-                    'stretch_gripper' : ('stretch_gripper', {'joint': 'stretch_gripper', 'v_r':gripper_v, 'a_r':gripper_a})
+                    'aloha_gripper' : ('aloha_gripper', {'joint': 'aloha_gripper', 'v_r':gripper_v, 'a_r':gripper_a})
                 }
 
                 

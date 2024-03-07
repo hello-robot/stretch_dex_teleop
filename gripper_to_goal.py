@@ -47,7 +47,7 @@ class GripperToGoal:
             
         self.using_stretch_2 = using_stretch_2
                 
-        self.joints_allowed_to_move = ['stretch_gripper', 'joint_arm_l0', 'joint_lift', 'joint_wrist_yaw', 'joint_wrist_pitch', 'joint_wrist_roll', 'joint_mobile_base_rotate_by']
+        self.joints_allowed_to_move = ['aloha_gripper', 'joint_arm_l0', 'joint_lift', 'joint_wrist_yaw', 'joint_wrist_pitch', 'joint_wrist_roll', 'joint_mobile_base_rotate_by']
 
         # Get Wrist URDF joint limits
         rotary_urdf_file_name = './stretch_base_rotation_ik_with_fixed_wrist.urdf'
@@ -165,7 +165,7 @@ class GripperToGoal:
             # INPUT: grip_width between 0.0 and 1.0
         
             if (grip_width is not None) and (grip_width > -1000.0): 
-                new_goal_configuration['stretch_gripper'] = self.grip_range * (grip_width - 0.5)                    
+                new_goal_configuration['aloha_gripper'] = self.grip_range * (grip_width - 0.5)                    
 
 
             ##################################################

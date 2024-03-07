@@ -1,0 +1,26 @@
+calibration_date: 2024-03-07 13:29:15.136065
+camera_matrix:
+- - 1150.6455953798284
+  - 0.0
+  - 958.8475371562282
+- - 0.0
+  - 1148.6231013368317
+  - 582.0906476894137
+- - 0.0
+  - 0.0
+  - 1.0
+camera_name: Logitech Webcam C930e
+distortion_coefficients:
+- - 0.09844073695514491
+  - -0.2340150335357684
+  - 0.0017886195104808206
+  - -0.005246217663152244
+  - 0.200889353285186
+image_size:
+- 1080
+- 1920
+- 3
+number_of_corresponding_points_used: 760
+number_of_images_processed: 60
+number_of_images_used: 38
+projection_error: 0.2928555641812823
