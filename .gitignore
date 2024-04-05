@@ -2,6 +2,9 @@
 # Calibration images
 webcam_calibration_images/*/1920x1080/*.png
 
+# Calibration yamls
+webcam_calibration_images/*/1920x1080/*.yaml
+
 # Robot specific URDFs
 stretch_base_rotation_ik.urdf
 stretch_base_rotation_ik_with_fixed_wrist.urdf
