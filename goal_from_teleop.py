@@ -208,9 +208,9 @@ if __name__ == '__main__':
     starting_configuration = dt.get_starting_configuration(lift_middle)
 
     if left_handed: 
-        webcam_aruco_detector = wt.WebcamArucoDetector(tongs_prefix='left', visualize_detections=False)
+        webcam_aruco_detector = wt.WebcamArucoDetector(tongs_prefix='left', visualize_detections=True)
     else:
-        webcam_aruco_detector = wt.WebcamArucoDetector(tongs_prefix='right', visualize_detections=False)
+        webcam_aruco_detector = wt.WebcamArucoDetector(tongs_prefix='right', visualize_detections=True)
     
     # Initialize IK
     simple_ik = si.SimpleIK()
