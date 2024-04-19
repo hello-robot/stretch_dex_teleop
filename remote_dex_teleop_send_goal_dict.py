@@ -6,6 +6,7 @@ import dex_teleop_parameters as dt
 import pprint as pp
 import loop_timer as lt
 import zmq
+import time
 
 if __name__ == '__main__':
 
@@ -62,9 +63,10 @@ if __name__ == '__main__':
     goal_send_socket.bind(goal_send_address)
 
     while True:
-        loop_timer.start_of_iteration()
+        loop_timer.start_of_iteration()        
         markers = webcam_aruco_detector.process_next_frame()
         goal_dict = goal_from_markers.get_goal_dict(markers)
+        
         if goal_dict:
             if print_goal:
                 print('goal_dict =')

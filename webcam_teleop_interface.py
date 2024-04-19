@@ -436,10 +436,9 @@ class WebcamArucoDetector:
         depth_image = None
         depth_camera_info = color_camera_info
         depth_scale = 1.0
-
         self.aruco_detector.update(color_image, color_camera_info)
         markers = self.aruco_detector.get_detected_markers()
-
+        
         virtual_tongs_marker = self.process_tongs(markers)
         if virtual_tongs_marker is not None: 
             markers[virtual_tongs_marker['name']] = virtual_tongs_marker

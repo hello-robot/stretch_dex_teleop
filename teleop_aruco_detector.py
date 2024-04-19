@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 import cv2.aruco as aruco
-
+import time
 
 def minimum_distance_between_corners(corners):
     # calculate the 6 distances between the corners and return the minimum
@@ -122,6 +122,10 @@ class ArucoMarkerCollection:
         #self.aruco_detection_parameters.cornerRefinementWinSize = 2
         self.collection = {}
         self.detector = aruco.ArucoDetector(self.aruco_dict, self.aruco_detection_parameters)
+        
+        self.detector_params = self.detector.getDetectorParameters()
+        self.detector_params.useAruco3Detection = True
+        self.detector.setDetectorParameters(self.detector_params)
         self.frame_number = 0
 
     def __iter__(self):
@@ -141,7 +145,9 @@ class ArucoMarkerCollection:
         self.rgb_camera_info = rgb_camera_info
         self.gray_image = cv2.cvtColor(self.rgb_image, cv2.COLOR_BGR2GRAY)
         image_height, image_width = self.gray_image.shape
+        st = time.perf_counter()
         self.aruco_corners, self.aruco_ids, aruco_rejected_image_points = self.detector.detectMarkers(self.gray_image)
+        print(f"Aruco Detection exec time: {(time.perf_counter()-st)*1000} ms")
         if self.aruco_ids is None:
             num_detected = 0
         else:
@@ -175,10 +181,8 @@ class ArucoDetector():
         
     def update(self, rgb_image, rgb_camera_info):
         self.rgb_image = rgb_image
-        self.rgb_camera_info = rgb_camera_info
-            
+        self.rgb_camera_info = rgb_camera_info    
         self.aruco_marker_collection.update(self.rgb_image, self.rgb_camera_info)
-        
         # save rotation for last
         if self.show_debug_images:
             aruco_image = self.aruco_marker_collection.draw_markers(self.rgb_image)
