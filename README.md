@@ -52,7 +52,7 @@ For bimanual manipulation, you will need two camera, two ring lights, two stands
 After cloning the repository, run the following installation script found in the repository's root directory. 
 
 ```
-install_dex_teleop.sh
+./install_dex_teleop.sh
 ```
 
 The installation script sets up a udev rule for a Logitech Webcam C930e, so that the camera can be reset each time you run dexterous teleoperation. This is a workaround to avoid low frame rates and errors in the camera settings.
