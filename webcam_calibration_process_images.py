@@ -10,6 +10,7 @@ from datetime import datetime
 import yaml
 import webcam as wc
 import pprint as pp
+from image_processing_helpers import fit_image_to_screen
 
 aruco_dict = ab.aruco_dict
 aruco_board = ab.board
@@ -125,7 +126,7 @@ for f in file_names:
 
             aruco.drawDetectedCornersCharuco(color_image, charuco_corners, charuco_ids)
     
-    cv2.imshow('Detected Charuco Corners', color_image)
+    cv2.imshow('Detected Charuco Corners', fit_image_to_screen(color_image))
     cv2.waitKey(1)
 
 # Perform Calibration

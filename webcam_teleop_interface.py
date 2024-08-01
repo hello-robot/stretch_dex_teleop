@@ -12,6 +12,7 @@ from copy import deepcopy
 import time
 import webcam as wc
 import dex_teleop_parameters as dt
+from image_processing_helpers import fit_image_to_screen
 
 
 def pixel_from_3d(xyz, camera_info):
@@ -445,7 +446,9 @@ class WebcamArucoDetector:
             markers[virtual_tongs_marker['name']] = virtual_tongs_marker
             
         if self.visualize_detections:
-            cv2.imshow('ArUco Detections', color_image)
+            display_image = fit_image_to_screen(color_image, ratio=0.75)
+
+            cv2.imshow('ArUco Detections', display_image)
             cv2.waitKey(1)
 
         return markers
