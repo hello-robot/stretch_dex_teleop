@@ -438,7 +438,8 @@ class WebcamArucoDetector:
             
         return virtual_marker
         
-    
+    def process_hands(self):
+        pass
 
     def process_next_frame(self): 
 
@@ -463,7 +464,7 @@ class WebcamArucoDetector:
             cv2.imshow('ArUco Detections', display_image)
             cv2.waitKey(1)
 
-        return markers
+        return markers, color_image
 
     
 if __name__ == '__main__':
@@ -472,7 +473,7 @@ if __name__ == '__main__':
     start_time = time.time()
     iterations = 0
     while True:
-        markers = webcam_aruco_detector.process_next_frame()
+        markers, _ = webcam_aruco_detector.process_next_frame()
         if markers:
             print('********************')
             print('markers =', markers)
