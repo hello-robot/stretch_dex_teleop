@@ -57,14 +57,19 @@ if __name__ == '__main__':
 
 
     loop_timer = lt.LoopTimer()
-    print_timing = False
+    print_timing = True
     print_goal = False
     clutched = False
     clutch_debounce_threshold = 3
-    clutch_count = 0
+    change_clutch_count = 0
+    
+    # loop stuff
+    check_hand_frame_skip = 3
+    i = 0
+    max_i = 100 # arbitrary number of iterations
 
     if check_clutch:
-        hand_tracker = HandTracker()
+        hand_tracker = HandTracker(left_clutch=(not left_handed))
     
     while True:
         loop_timer.start_of_iteration()
@@ -72,15 +77,21 @@ if __name__ == '__main__':
         goal_dict = goal_from_markers.get_goal_dict(markers)
 
         if check_clutch:
-            hand_prediction = hand_tracker.run_detection(color_image)
-            check_clutched = hand_tracker.check_clutched(hand_prediction)
+            if i % check_hand_frame_skip == 0:
+                hand_prediction = hand_tracker.run_detection(color_image)
+                check_clutched = hand_tracker.check_clutched(hand_prediction)
 
-            if check_clutched != clutched:
-                clutch_count += 1
+                if check_clutched != clutched:
+                    change_clutch_count += 1
+                else:
+                    change_clutch_count = 0
+                
+                if change_clutch_count >= clutch_debounce_threshold:
+                    clutched = not clutched
+                    change_clutch_count = 0
             
-            if clutch_count >= clutch_debounce_threshold:
-                clutched = not clutched
-                clutch_count = 0
+            i += 1
+            i = i % max_i
             
         if goal_dict and not clutched:
             if print_goal:
