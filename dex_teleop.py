@@ -7,6 +7,7 @@ import goal_from_teleop as gt
 import dex_teleop_parameters as dt
 import pprint as pp
 import loop_timer as lt
+from hand_tracker import HandTracker
 
 
 if __name__ == '__main__':
@@ -17,6 +18,7 @@ if __name__ == '__main__':
     left_handed = args.left
     using_stretch_2 = args.stretch_2
     slide_lift_range = args.slide_lift_range
+    check_clutch = args.clutch
         
     # The 'default', 'slow', 'fast', and 'max' options are defined by
     # Hello Robot. The 'fastest_stretch_2' option has been specially tuned for
@@ -57,12 +59,30 @@ if __name__ == '__main__':
     loop_timer = lt.LoopTimer()
     print_timing = False
     print_goal = False
+    clutched = False
+    clutch_debounce_threshold = 5
+    clutch_count = 0
+
+    if check_clutch:
+        hand_tracker = HandTracker()
     
     while True:
         loop_timer.start_of_iteration()
-        markers = webcam_aruco_detector.process_next_frame()
+        markers, color_image = webcam_aruco_detector.process_next_frame()
         goal_dict = goal_from_markers.get_goal_dict(markers)
-        if goal_dict:
+
+        if check_clutch:
+            hand_prediction = hand_tracker.run_detection(color_image)
+            check_clutched = hand_tracker.check_clutched(hand_prediction)
+
+            if check_clutched != clutched:
+                clutch_count += 1
+            
+            if clutch_count >= clutch_debounce_threshold:
+                clutched = not clutched
+                clutch_count = 0
+            
+        if goal_dict and not clutched:
             if print_goal:
                 print('goal_dict =')
                 pp.pprint(goal_dict)

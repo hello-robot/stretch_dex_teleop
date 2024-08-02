@@ -13,7 +13,8 @@ def get_arg_parser():
     parser.add_argument('-s', '--stretch_2', action='store_true', help = 'Use a Stretch 2, which may require special settings.')
     parser.add_argument('-m', '--multiprocessing', action='store_true', help = 'Write goals to shared memory using Python multiprocessing.')
     parser.add_argument('-i', '--slide_lift_range', action='store_true', help = 'Holding the tongs high will gradually slide the lift range of motion upward. Holding them low will gradually slide the lift range of motion downward. The default is to use a fixed range of motion for the lift.')
-    
+    parser.add_argument('-c', '--clutch', action='store_true', help='Enables clutch behavior by holding up another hand and spreading fingers.')
+
     return parser
 
 
