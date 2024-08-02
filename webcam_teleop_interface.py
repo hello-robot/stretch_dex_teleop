@@ -156,7 +156,12 @@ class WebcamArucoDetector:
                 distance_between_markers = grip_width
                 hypotenuse = self.tongs_pin_joint_to_marker_center
                 opposite_side = distance_between_markers / 2.0
-                variable_angle = math.asin(opposite_side/hypotenuse)
+
+                ratio = opposite_side / hypotenuse
+                ratio = np.clip(ratio, a_min=-1, a_max=1)
+
+                variable_angle = math.asin(ratio)
+
                 if self.debug_side_marker: 
                     print('tongs_pin_joint_to_marker_cecnter = {:.2f} cm'.format(self.tongs_pin_joint_to_marker_center * 100.0))
                     print('distance_between_markers = {:.2f} cm'.format(distance_between_markers * 100.0))
@@ -404,7 +409,14 @@ class WebcamArucoDetector:
                 distance_between_markers = self.tongs_open_grip_width
             hypotenuse = self.tongs_pin_joint_to_marker_center
             opposite_side = distance_between_markers / 2.0
-            adjacent_side = math.sqrt((hypotenuse * hypotenuse) - (opposite_side * opposite_side))
+            
+            h2 = hypotenuse * hypotenuse
+            o2 = opposite_side * opposite_side
+
+            difference_pythagorean = h2 - o2
+            difference_pythagorean = np.clip(difference_pythagorean, 0.01, float('inf'))
+
+            adjacent_side = math.sqrt(difference_pythagorean)
             grip_pos = grip_pos + (-(adjacent_side) * grip_y_axis)
             
                 
