@@ -1,0 +1,6 @@
+scipy
+six
+jupyter
+filelock
+pyserial
+transforms3d

@@ -1,6 +1,8 @@
 
 # Calibration images
 webcam_calibration_images/*/1920x1080/*.png
+webcam_calibration_images/
+webcam_aruco_calibration_board.png
 
 # Robot specific URDFs
 stretch_base_rotation_ik.urdf
