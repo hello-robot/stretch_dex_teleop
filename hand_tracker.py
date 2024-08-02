@@ -3,6 +3,7 @@ import mediapipe as mp
 import numpy as np
 from typing import List
 from enum import Enum
+from google.protobuf.json_format import MessageToDict
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -67,7 +68,7 @@ def _get_extended_fingers(estimate, threshold=0.25):
 
     return extended
 
-def _compute_bounding_box(hand_prediction_results, min_size = 0.2):
+def _compute_bounding_box(hand_prediction_results, min_size = 0.1):
     landmarks = hand_prediction_results.multi_hand_landmarks
     if landmarks is not None:
         x_min = y_min = 1
@@ -142,33 +143,45 @@ class HandAnalyzer:
 
 class HandTracker(HandAnalyzer):
     # contains interface with a webcam and visualization methods
-    def __init__(self) -> None:
-        self.capture_device = cv2.VideoCapture(6)  # NOTE: the arg changes. 0 for desktop, 6 for stretch
+    def __init__(self, left_clutch: bool = True) -> None:
+        self.left_clutch = left_clutch
         self.hands_model = mp_hands.Hands(
             model_complexity=0,
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5)
 
     def run_detection(self, image):
+        image = cv2.flip(image, 0)
         hand_prediction_results = self.hands_model.process(image)
-        if hand_prediction_results.multi_hand_landmarks is not None:
-            hand_prediction_results = _normalize_estimate(hand_prediction_results)
-
         return hand_prediction_results
     
-    def check_clutched(self, hand_prediction_results):
-        # get extended fingers
-        extended_fingers = self.get_extended_fingers(hand_prediction_results, threshold=0.4)
-
-        # determine action
-        n_fingers = len(extended_fingers)
-
-        # five finger actions
-        if n_fingers == 5:
-            print("CLUTCH")
+    def check_clutched(self, hand_prediction_results, complicated: bool = False) -> bool:
+        clutched = False
+        if hand_prediction_results.multi_handedness is not None:
+            for _, hand_handedness in enumerate(hand_prediction_results.multi_handedness):
+                handedness_dict = MessageToDict(hand_handedness)
+                hand_side = (handedness_dict['classification'][0]['label']).lower()
+                if self.left_clutch and hand_side == "left":
+                    clutched = True
+                elif not self.left_clutch and hand_side == "right":
+                    clutched = True
         
-        else:
-            print("RUN")
+        if complicated:
+            # complicated method
+            if hand_prediction_results.multi_hand_landmarks is not None:
+                hand_prediction_results = _normalize_estimate(hand_prediction_results)
+
+            # get extended fingers
+            extended_fingers = self.get_extended_fingers(hand_prediction_results, threshold=0.5)
+
+            # determine action
+            n_fingers = len(extended_fingers)
+
+            # five finger actions
+            if n_fingers == 5:
+                clutched = True
+        
+        return clutched
 
     def run(self):
         cam = Webcam(show_images=False, use_second_camera=False)
@@ -176,10 +189,12 @@ class HandTracker(HandAnalyzer):
         while True:
             image, _ = cam.get_next_frame()
             detection_result = self.run_detection(image)
-            self.check_clutched(detection_result)
+            clutched = self.check_clutched(detection_result)
 
-            # print(detection_result)
-            # print(len(detection_result.hand_landmarks))
+            if clutched:
+                print("CLUTCH ENGAGED")
+            else:
+                print("RUN")
 
 if __name__ == '__main__':
-    HandTracker().run()
+    HandTracker(left_clutch=False).run()
