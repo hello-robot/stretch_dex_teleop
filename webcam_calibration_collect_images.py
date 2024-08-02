@@ -4,6 +4,7 @@ import time
 import subprocess
 from pathlib import Path
 import webcam as wc
+from image_processing_helpers import fit_image_to_screen
 
 
 camera_name = 'Logitech Webcam C930e'
@@ -34,7 +35,7 @@ while num_images < num_images_to_collect:
     
     color_image, camera_info = webcam.get_next_frame()
 
-    cv2.imshow('image from camera', color_image)
+    cv2.imshow('image from camera', fit_image_to_screen(color_image))
     cv2.waitKey(1)
 
     curr_time = time.time()
