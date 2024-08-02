@@ -59,6 +59,11 @@ The installation script sets up a udev rule for a Logitech Webcam C930e, so that
 
 Next, the installation script installs v4l2 utilities, if necessary.
 
+You also need to install some python dependencies:
+```
+pip install -r requirements.txt
+```
+
 ### Generate Specialized URDFs
 
 To run Dex Teleop, you need to generate specialized URDF files. Dex Teleop uses forward kinematic (FK) and inverse kinematic (IK) models of the robot. These models use specialized URDFs generated from the calibrated URDF on your robot. 
