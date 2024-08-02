@@ -60,7 +60,7 @@ if __name__ == '__main__':
     print_timing = False
     print_goal = False
     clutched = False
-    clutch_debounce_threshold = 5
+    clutch_debounce_threshold = 3
     clutch_count = 0
 
     if check_clutch:
