@@ -101,12 +101,6 @@ Print this image out without scaling it. The resulting printout should match the
 
 Mount the resulting printout on a flat surface that you can move around the camera to capture calibration images **with the ring light turned on**. 
 
-Install v4l2 with the following command.
-
-```
-sudo apt-get install v4l-utils
-```
-
 Use the following command and your calibration pattern to collect calibration images for your Logitech C930e webcam. The entire calibration board should be visible and not too far away, or else the calibration images can lead to errors.
 
 ```
