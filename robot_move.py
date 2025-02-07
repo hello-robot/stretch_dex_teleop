@@ -55,7 +55,7 @@ class RobotMove:
                     #'joint_lift': (None, {'v_m': 0.13, 'a_m': 1.0}),
                     custom_parameters = {
                         'joint_mobile_base_rotate_by': (None, {'v_r': 0.3, 'a_r': 0.5}),
-                        'joint_lift': (None, {'v_m': 0.2, 'a_m': 1.0, 'contact_thresh_pos': 75.0}),
+                        'joint_lift': (None, {'v_m': 0.2, 'a_m': 1.0, 'contact_thresh_pos': 85.0}),
                         'joint_arm_l0': (None, {'v_m': 0.18, 'a_m': 1.0}),
                         'joint_wrist_yaw': ('wrist_yaw', {'v_r': 3.0, 'a_r': 10}),
                         'joint_wrist_pitch': ('wrist_pitch', {'v_r': 3.0, 'a_r': 10.0}),
