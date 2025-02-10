@@ -149,7 +149,9 @@ python3 dex_teleop.py
 
 ### When You're Ready, Try Fast Motions
 
-Once you are confident that you have the system correctly configured and have learned to use it at the slowest speed, you can run the following command to try it at the fastest available speed. **The robot will move fast, with greatly reduced contact sensitivity, so be very careful!**
+First, plug the charger into the robot and set the charger to [SUPPLY mode](https://docs.hello-robot.com/0.3/hardware/battery_maintenance_guide_se3/#noco-genius-10-interface).
+
+Then, once you are confident that you have the system correctly configured and have learned to use it at the slowest speed, you can run the following command to try it at the fastest available speed. **The robot will move fast, with greatly reduced contact sensitivity, so be very careful!**
 
 ```
 python3 dex_teleop.py --fast
