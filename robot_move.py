@@ -14,7 +14,17 @@ class RobotMove:
             print('WARNING: RobotMove create_commands called with unrecognized speed = \'' + speed + '\'')
             print('         Using \'default\' speed instead.')
             speed = 'default'
-        
+
+        # Check robot is homed
+        is_homed = robot.is_homed()
+        if not is_homed:
+            raise Exception("Robot must be homed before using Dex Teleop")
+
+        # If using fast mode, check charger is plugged in
+        is_charging = robot.pimu.status['charger_is_charging']
+        if speed in ['fastest_stretch_2', 'fastest_stretch_3'] and not is_charging:
+            raise Exception("Dex Teleop's fast mode requires the charger to plugged in")
+
         self.speed = speed
         self.move_to_functions = self.all_speeds[self.speed]['move_to_functions']
         self.move_to_settings = self.all_speeds[self.speed]['move_to_settings']
