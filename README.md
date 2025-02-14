@@ -149,7 +149,9 @@ python3 dex_teleop.py
 
 ### When You're Ready, Try Fast Motions
 
-Once you are confident that you have the system correctly configured and have learned to use it at the slowest speed, you can run the following command to try it at the fastest available speed. **The robot will move fast, so be very careful!**
+First, plug the charger into the robot and set the charger to [SUPPLY mode](https://docs.hello-robot.com/0.3/hardware/battery_maintenance_guide_se3/#noco-genius-10-interface).
+
+Then, once you are confident that you have the system correctly configured and have learned to use it at the slowest speed, you can run the following command to try it at the fastest available speed. **The robot will move fast, with greatly reduced contact sensitivity, so be very careful!**
 
 ```
 python3 dex_teleop.py --fast
@@ -181,6 +183,16 @@ For example, for the left-hand robot, you can run the following command to try s
 python3 dex_teleop.py --left
 ```
 
+## Troubleshooting
+
+If you're having trouble with the steps in the guide, please check the following tips:
+
+### Arm stops abruptly or moves jerkily during Fast Mode
+
+For most Stretchs, Dex Teleop's fast mode requires the arm/lift motors to apply higher effort to track (and apply contact according to) the reference trajectory. If you're seeing abrupt or jerky motions, try the following tips:
+
+ - The percentage effort the motor needs also varies with the robot's system voltage. For this reason, ensure the robot's charger is plugged in and set to SUPPLY mode when using fast mode in Dex Teleop. Documentation on the charger's SUPPLY mode can be found in the [Battery Maintenance](https://docs.hello-robot.com/0.3/hardware/battery_maintenance_guide_se3/#noco-genius-10-interface) guide.
+ - If the charger is already plugged in, the motors' effort threshold may need to be calibrated. See the [Practical guide to guarded contacts](https://forum.hello-robot.com/t/practical-guide-to-guarded-contacts/654) post for more details on using the `REx_calibrate_guarded_contact.py` CLI. Both the arm and lift motors may need to be recalibrated.
 
 
 ## Acknowledgment

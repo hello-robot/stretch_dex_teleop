@@ -32,6 +32,8 @@ if __name__ == '__main__':
     else:
         robot_speed = 'slow'
     print('running with robot_speed =', robot_speed)
+    if use_fastest_mode:
+        print("WARNING: Expect lower contact sensitivity in Fast Mode")
 
     lift_middle = dt.get_lift_middle(manipulate_on_ground)
     center_configuration = dt.get_center_configuration(lift_middle)
