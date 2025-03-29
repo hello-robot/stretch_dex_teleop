@@ -7,6 +7,7 @@ import loop_timer as lt
 import dex_teleop_parameters as dt
 from multiprocessing import shared_memory
 import os
+from hand_tracker import HandTracker
 
 
 class GoalFromMarkers:
@@ -182,6 +183,7 @@ if __name__ == '__main__':
     using_stretch_2 = args.stretch_2
     use_multiprocessing = args.multiprocessing
     slide_lift_range = args.slide_lift_range
+    check_clutch = args.clutch
 
     # When False, the robot should only move to its initial position
     # and not move in response to ArUco markers. This is helpful when
@@ -233,14 +235,44 @@ if __name__ == '__main__':
     loop_timer = lt.LoopTimer()
     print_timing = True
     first_goal_sent = False
+
+    clutched = False
+    clutch_debounce_threshold = 3
+    change_clutch_count = 0
+
+    # loop stuff
+    check_hand_frame_skip = 3
+    i = 0
+    max_i = 100 # arbitrary number of iterations
+
+    if check_clutch:
+        hand_tracker = HandTracker(left_clutch=(not left_handed))
     
     try: 
         while True:
             loop_timer.start_of_iteration()
-            markers = webcam_aruco_detector.process_next_frame()
+            markers, color_image = webcam_aruco_detector.process_next_frame()
             if use_multiprocessing: 
                 goal_array = goal_from_markers.get_goal_array(markers)
-                if goal_array is not None: 
+
+                if check_clutch:
+                    if i % check_hand_frame_skip == 0:
+                        hand_prediction = hand_tracker.run_detection(color_image)
+                        check_clutched = hand_tracker.check_clutched(hand_prediction)
+
+                        if check_clutched != clutched:
+                            change_clutch_count += 1
+                        else:
+                            change_clutch_count = 0
+                        
+                        if change_clutch_count >= clutch_debounce_threshold:
+                            clutched = not clutched
+                            change_clutch_count = 0
+                    
+                    i += 1
+                    i = i % max_i
+
+                if goal_array is not None and not clutched: 
                     shared_memory_goal_array[:] = goal_array[:]
                     if not first_goal_sent:
                         loop_timer.reset()

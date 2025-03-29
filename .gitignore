@@ -11,6 +11,8 @@ stretch_base_translation_ik.urdf
 stretch_base_translation_ik_with_fixed_wrist.urdf
 meshes/
 
+# mediapipe
+hand_landmarker.task
 
 # Emacs files
 *~
