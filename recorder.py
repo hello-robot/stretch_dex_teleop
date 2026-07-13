@@ -4,7 +4,7 @@ import json
 import threading
 import queue
 import cv2
-import pandas as pd
+import csv
 from pathlib import Path
 
 class EpisodeRecorder:
@@ -56,9 +56,11 @@ class EpisodeRecorder:
             self.writer_thread.join()
             
         if len(self.records) > 0:
-            df = pd.DataFrame(self.records)
             csv_path = self.episode_dir / "trajectory.csv"
-            df.to_csv(csv_path, index=False)
+            with open(csv_path, 'w', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=self.records[0].keys())
+                writer.writeheader()
+                writer.writerows(self.records)
             print(f"Saved {len(self.records)} frames to {csv_path}")
         else:
             print("No frames recorded, episode discarded.")
@@ -110,6 +112,8 @@ class EpisodeRecorder:
             'joint_wrist_pitch': commanded_joints.get('joint_wrist_pitch', measured_state['end_of_arm']['wrist_pitch']['pos']),
             'joint_wrist_yaw': commanded_joints.get('joint_wrist_yaw', measured_state['end_of_arm']['wrist_yaw']['pos']),
             'stretch_gripper': commanded_joints.get('stretch_gripper', measured_state['end_of_arm']['stretch_gripper']['pos']),
+            'gripper_width_m': self._convert_gripper_pos_to_m(measured_state['end_of_arm']['stretch_gripper']['pos']),
+            'commanded_gripper_width_m': self._convert_gripper_pos_to_m(commanded_joints.get('stretch_gripper', measured_state['end_of_arm']['stretch_gripper']['pos'])),
             
             # Modalities
             'image_teleop_webcam': rel_image_path,
@@ -127,3 +131,19 @@ class EpisodeRecorder:
                 self.image_queue.task_done()
             except queue.Empty:
                 continue
+
+    def _convert_gripper_pos_to_m(self, pos):
+        if not hasattr(self, 'gripper_conversion') or not self.gripper_conversion:
+            return 0.0
+        
+        c = self.gripper_conversion
+        open_m = c.get('open_aperture_m', 0.09)
+        closed_m = c.get('closed_aperture_m', 0.0)
+        open_r = c.get('open_robotis', 70.0)
+        closed_r = c.get('closed_robotis', 0.0)
+        
+        if open_r == closed_r:
+            return 0.0
+            
+        m = (pos - closed_r) / (open_r - closed_r) * (open_m - closed_m) + closed_m
+        return m

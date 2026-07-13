@@ -61,6 +61,12 @@ if __name__ == '__main__':
     import time
 
     episode_recorder = rec.EpisodeRecorder()
+    try:
+        episode_recorder.gripper_conversion = gripper_to_goal.robot.end_of_arm.motors['stretch_gripper'].params['gripper_conversion']
+    except Exception as e:
+        print(f"Warning: Could not get gripper conversion params: {e}")
+        episode_recorder.gripper_conversion = None
+        
     loop_timer = lt.LoopTimer()
     print_timing = False
     print_goal = False
@@ -88,6 +94,14 @@ if __name__ == '__main__':
                 teleop_image=teleop_image
             )
             
+        display_image = teleop_image.copy() if teleop_image is not None else np.zeros((720, 1280, 3), dtype=np.uint8)
+        status_text = "RECORDING (Press 'r' to stop, 'q' to quit)" if episode_recorder.is_recording else "Not Recording (Press 'r' to start, 'q' to quit)"
+        color = (0, 0, 255) if episode_recorder.is_recording else (0, 255, 0)
+        cv2.putText(display_image, status_text, (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+        
+        display_image = cv2.resize(display_image, (1280, 720))
+        cv2.imshow('Dex Teleop', display_image)
+            
         key = cv2.waitKey(1) & 0xFF
         if key == ord('r'):
             if episode_recorder.is_recording:
@@ -97,6 +111,7 @@ if __name__ == '__main__':
         elif key == ord('q'):
             if episode_recorder.is_recording:
                 episode_recorder.stop_episode()
+            cv2.destroyAllWindows()
             break
             
         loop_timer.end_of_iteration()
