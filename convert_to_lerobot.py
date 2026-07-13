@@ -6,12 +6,10 @@ from pathlib import Path
 from PIL import Image
 
 try:
-    from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
-except ImportError:
-    print("Error: LeRobot is not installed in your current environment.")
-    print("Please install it following the official instructions, or run:")
-    print("pip install lerobot")
-    exit(1)
+    from lerobot.datasets.lerobot_dataset import LeRobotDataset
+except ImportError as exc:
+    print("Failed to import LeRobotDataset:")
+    raise
 
 def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
     episode_path = Path(episode_dir)
