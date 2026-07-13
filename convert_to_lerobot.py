@@ -1,4 +1,3 @@
-import os
 import csv
 import argparse
 import torch
@@ -81,7 +80,8 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
             # Parse image
             img_path = episode_path / row['image_teleop_webcam']
             # LeRobot uses PIL Images for add_frame
-            img = Image.open(img_path)
+            with Image.open(img_path) as image:
+                img = image.convert("RGB").copy()
 
             frame_dict = {
                 "observation.image": img,
@@ -96,7 +96,7 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
                 print(f"Processed frame {i}...")
 
     # Save the episode
-    dataset.save_episode(task=task_name)
+    dataset.save_episode()
     print(f"Episode saved locally to {dataset.root}")
 
     if push_to_hub:
