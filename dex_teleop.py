@@ -56,19 +56,49 @@ if __name__ == '__main__':
     goal_from_markers = gt.GoalFromMarkers(dt.teleop_origin, center_wrist_position, slide_lift_range=slide_lift_range)
 
 
+    import recorder as rec
+    import cv2
+    import time
+
+    episode_recorder = rec.EpisodeRecorder()
     loop_timer = lt.LoopTimer()
     print_timing = False
     print_goal = False
     
+    print("Teleop ready. Press 'r' in the OpenCV window to toggle recording. Press 'q' to quit.")
+    
     while True:
         loop_timer.start_of_iteration()
-        markers = webcam_aruco_detector.process_next_frame()
+        markers, teleop_image = webcam_aruco_detector.process_next_frame()
         goal_dict = goal_from_markers.get_goal_dict(markers)
+        
+        commanded_joints = None
         if goal_dict:
             if print_goal:
                 print('goal_dict =')
                 pp.pprint(goal_dict)
-            gripper_to_goal.update_goal(**goal_dict)
+            commanded_joints = gripper_to_goal.update_goal(**goal_dict)
+            
+        if episode_recorder.is_recording and commanded_joints is not None:
+            measured_state = gripper_to_goal.robot.get_status()
+            episode_recorder.add(
+                timestamp=time.time(),
+                measured_state=measured_state,
+                commanded_joints=commanded_joints,
+                teleop_image=teleop_image
+            )
+            
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('r'):
+            if episode_recorder.is_recording:
+                episode_recorder.stop_episode()
+            else:
+                episode_recorder.start_episode()
+        elif key == ord('q'):
+            if episode_recorder.is_recording:
+                episode_recorder.stop_episode()
+            break
+            
         loop_timer.end_of_iteration()
         if print_timing: 
             loop_timer.pretty_print()
