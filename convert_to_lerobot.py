@@ -13,7 +13,7 @@ except ImportError:
     print("pip install lerobot")
     exit(1)
 
-def convert_episode(episode_dir, repo_id, push_to_hub):
+def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
     episode_path = Path(episode_dir)
     csv_path = episode_path / "trajectory.csv"
     
@@ -89,7 +89,7 @@ def convert_episode(episode_dir, repo_id, push_to_hub):
                 "observation.image": img,
                 "observation.state": state,
                 "action": action,
-                "task": "teleoperation_task"
+                "task": task_name
             }
 
             dataset.add_frame(frame_dict)
@@ -98,7 +98,7 @@ def convert_episode(episode_dir, repo_id, push_to_hub):
                 print(f"Processed frame {i}...")
 
     # Save the episode
-    dataset.save_episode(task="teleoperation_task")
+    dataset.save_episode(task=task_name)
     print(f"Episode saved locally to {dataset.root}")
 
     if push_to_hub:
@@ -110,7 +110,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert Stretch Dex Teleop CSV data to LeRobotDataset format")
     parser.add_argument("--episode-dir", type=str, required=True, help="Path to the episode directory containing trajectory.csv")
     parser.add_argument("--repo-id", type=str, default="your-username/stretch_dex_teleop", help="Hugging Face repo ID (e.g. username/dataset_name)")
+    parser.add_argument("--task", type=str, default="teleoperation_task", help="Text description of the task being performed")
     parser.add_argument("--push", action="store_true", help="Push to Hugging Face Hub after converting")
     args = parser.parse_args()
 
-    convert_episode(args.episode_dir, args.repo_id, args.push)
+    convert_episode(args.episode_dir, args.repo_id, args.task, args.push)
