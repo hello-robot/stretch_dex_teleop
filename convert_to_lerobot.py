@@ -88,7 +88,8 @@ def convert_episode(episode_dir, repo_id, push_to_hub):
             frame_dict = {
                 "observation.image": img,
                 "observation.state": state,
-                "action": action
+                "action": action,
+                "task": "teleoperation_task"
             }
 
             dataset.add_frame(frame_dict)
