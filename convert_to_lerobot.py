@@ -1,4 +1,5 @@
 import csv
+import sys
 import argparse
 import torch
 from pathlib import Path
@@ -6,6 +7,7 @@ from PIL import Image
 
 try:
     from lerobot.datasets.lerobot_dataset import LeRobotDataset
+    from lerobot.utils.constants import HF_LEROBOT_HOME
 except ImportError as exc:
     print("Failed to import LeRobotDataset:")
     raise
@@ -42,11 +44,19 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
 
     # Initialize the LeRobot dataset
     # By default, it will save to ~/.cache/huggingface/lerobot
-    dataset = LeRobotDataset.create(
-        repo_id=repo_id,
-        fps=30,
-        features=features,
-    )
+    try:
+        dataset = LeRobotDataset.create(
+            repo_id=repo_id,
+            fps=30,
+            features=features,
+        )
+    except FileExistsError:
+        existing_path = HF_LEROBOT_HOME / repo_id
+        print(f"Error: a dataset already exists at {existing_path}")
+        print(f"  --repo-id '{repo_id}' has already been used to create a LeRobot dataset.")
+        print("  Choose a different --repo-id, or remove the existing dataset directory if you want to overwrite it.")
+        print("  (Appending additional episodes to an existing dataset is not yet supported by this script.)")
+        sys.exit(1)
 
     with open(csv_path, 'r') as f:
         reader = csv.DictReader(f)
