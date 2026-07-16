@@ -13,9 +13,12 @@ To use the data recorder:
 4. Press `r` on your keyboard to **Start** recording an episode.
 5. Perform your manipulation task.
 6. Press `r` again to **Stop** the recording and finalize the episode.
-7. Press `q` to safely quit the teleoperation script.
+7. **If the episode had any frames**, you'll be asked `Was the episode successful? (y/n)` — the window freezes on the last frame until you answer; any key other than `y`/`n` is ignored. Your answer is written as `success.txt` (`"Success"` or `"Failure"`) into the episode directory. Pass `--skip-success` on the command line to disable this prompt entirely (no `success.txt` gets written).
+8. Press `q` to safely quit the teleoperation script. Quitting while a recording is in progress stops and labels it the same way as pressing `r` — you won't lose the success/failure prompt just because you quit instead of stopping first.
 
-All recorded data will be saved inside the `data/episode_YYYY-MM-DD--HH-MM-SS/` directory.
+All recorded data will be saved inside the `data/episode_YYYY-MM-DD--HH-MM-SS/` directory, containing `trajectory.csv`, an `images/` folder, and (unless `--skip-success` was passed) a `success.txt` label.
+
+**Filtering on this label is currently manual** — `convert_to_lerobot.py` doesn't read `success.txt` or skip failed episodes automatically. Check the label yourself (`cat data/episode_.../success.txt`) before deciding whether to run the converter on a given episode. This matches how `success.txt` works in `stretch_ai`'s own recorder, where the equivalent label is also never read by its LeRobot conversion path — it's there for you to filter on, not consumed automatically.
 
 ## Architecture
 

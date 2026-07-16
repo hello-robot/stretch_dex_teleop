@@ -17,6 +17,7 @@ if __name__ == '__main__':
     left_handed = args.left
     using_stretch_2 = args.stretch_2
     slide_lift_range = args.slide_lift_range
+    record_success = not args.skip_success
         
     # The 'default', 'slow', 'fast', and 'max' options are defined by
     # Hello Robot. The 'fastest_stretch_2' option has been specially tuned for
@@ -66,12 +67,35 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Warning: Could not get gripper conversion params: {e}")
         episode_recorder.gripper_conversion = None
-        
+
+    def prompt_for_episode_success(display_image):
+        # Blocks on y/n, matching stretch_ai's ask_for_success() convention.
+        # Any other key is ignored and it keeps waiting.
+        prompt_image = display_image.copy() if display_image is not None else np.zeros((720, 1280, 3), dtype=np.uint8)
+        cv2.putText(prompt_image, "Was the episode successful? (y/n)", (30, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+        cv2.imshow('Dex Teleop', prompt_image)
+        print("Was the episode successful? (y/n)")
+        while True:
+            key = cv2.waitKey(0) & 0xFF
+            if key == ord('y'):
+                return True
+            elif key == ord('n'):
+                return False
+
+    def stop_current_episode(display_image):
+        had_frames = episode_recorder.frame_index > 0
+        success = None
+        if had_frames and record_success:
+            success = prompt_for_episode_success(display_image)
+        episode_recorder.stop_episode(success=success)
+
     loop_timer = lt.LoopTimer()
     print_timing = False
     print_goal = False
     
     print("Teleop ready. Press 'r' in the OpenCV window to toggle recording. Press 'q' to quit.")
+    if record_success:
+        print("After stopping a non-empty recording, you'll be asked whether it succeeded (y/n). Pass --skip-success to disable this.")
     
     while True:
         loop_timer.start_of_iteration()
@@ -105,12 +129,12 @@ if __name__ == '__main__':
         key = cv2.waitKey(1) & 0xFF
         if key == ord('r'):
             if episode_recorder.is_recording:
-                episode_recorder.stop_episode()
+                stop_current_episode(display_image)
             else:
                 episode_recorder.start_episode()
         elif key == ord('q'):
             if episode_recorder.is_recording:
-                episode_recorder.stop_episode()
+                stop_current_episode(display_image)
             cv2.destroyAllWindows()
             break
             

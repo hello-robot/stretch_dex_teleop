@@ -48,7 +48,7 @@ class EpisodeRecorder:
         self.writer_thread.start()
         print(f"Started recording episode to {self.episode_dir}")
 
-    def stop_episode(self):
+    def stop_episode(self, success=None):
         if not self.is_recording:
             return
 
@@ -74,6 +74,11 @@ class EpisodeRecorder:
                 writer.writeheader()
                 writer.writerows(self.records)
             print(f"Saved {len(self.records)} frames to {csv_path}")
+
+            if success is not None:
+                label_path = self.episode_dir / "success.txt"
+                label_path.write_text("Success" if success else "Failure")
+                print(f"Marked episode as {'Success' if success else 'Failure'} ({label_path})")
         else:
             print("No frames recorded, episode discarded.")
 
