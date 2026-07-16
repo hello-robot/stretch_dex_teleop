@@ -18,7 +18,13 @@ To use the data recorder:
 
 All recorded data will be saved inside the `data/episode_YYYY-MM-DD--HH-MM-SS/` directory, containing `trajectory.csv`, an `images/` folder, and (unless `--skip-success` was passed) a `success.txt` label.
 
-**Filtering on this label is currently manual** — `convert_to_lerobot.py` doesn't read `success.txt` or skip failed episodes automatically. Check the label yourself (`cat data/episode_.../success.txt`) before deciding whether to run the converter on a given episode. This matches how `success.txt` works in `stretch_ai`'s own recorder, where the equivalent label is also never read by its LeRobot conversion path — it's there for you to filter on, not consumed automatically.
+**`convert_to_lerobot.py` reads this label as a safety check, not a batch filter.** Before doing any conversion work, it checks `{episode-dir}/success.txt`:
+- No file → episode is unlabeled (e.g. recorded with `--skip-success`, or from before this feature existed) — proceeds normally.
+- Contains `"Success"` → proceeds normally.
+- Contains `"Failure"` → **blocked by default**, clear error, exit code 1 — protects against accidentally converting/training on an episode you already know failed. Pass `--allow-failed` to convert it anyway if you have a real reason to (e.g. debugging, or using it as a negative example).
+- Anything else → treated as an error (unrecognized label content), not silently guessed.
+
+This is a per-episode guard, not automatic batch filtering — there's still no glob/multi-episode-directory mode, so you're always converting one episode at a time and this just stops you from doing that with a known-bad one by mistake.
 
 ## Architecture
 

@@ -66,13 +66,44 @@ def _exit_dataset_already_exists(dataset_root, repo_id):
     sys.exit(1)
 
 
-def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False):
+def check_success_label(episode_path, allow_failed):
+    """Check the episode's success.txt (written by recorder.py's success/failure prompt).
+
+    Missing label -> unlabeled, not the same as a known failure, proceeds silently.
+    "Success" -> proceeds.
+    "Failure" -> blocked by default (avoids accidentally training on a known-bad
+    episode); --allow-failed overrides this if you genuinely want to convert it anyway.
+    """
+    label_path = episode_path / "success.txt"
+    if not label_path.exists():
+        print(f"Note: no success.txt found at {label_path} -- episode is unlabeled, proceeding.")
+        return
+
+    content = label_path.read_text().strip()
+    if content == "Success":
+        print(f"Episode marked as Success ({label_path}).")
+    elif content == "Failure":
+        if allow_failed:
+            print(f"WARNING: episode is marked as Failure ({label_path}), but --allow-failed was given -- proceeding anyway.")
+        else:
+            print(f"Error: episode is marked as Failure ({label_path}).")
+            print("  Converting a known-failed episode is blocked by default to avoid accidentally training on it.")
+            print("  Pass --allow-failed if you genuinely want to convert it anyway.")
+            sys.exit(1)
+    else:
+        print(f"Error: {label_path} has unrecognized content {content!r} (expected 'Success' or 'Failure').")
+        sys.exit(1)
+
+
+def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, allow_failed=False):
     episode_path = Path(episode_dir)
     csv_path = episode_path / "trajectory.csv"
 
     if not csv_path.exists():
         print(f"Error: {csv_path} does not exist.")
         return
+
+    check_success_label(episode_path, allow_failed)
 
     print(f"Converting episode from {episode_dir}...")
 
@@ -202,6 +233,7 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default="teleoperation_task", help="Text description of the task being performed")
     parser.add_argument("--push", action="store_true", help="Push to Hugging Face Hub after converting")
     parser.add_argument("--append", action="store_true", help="Append this episode to an existing dataset at --repo-id instead of erroring. Note: the dataset's fps is fixed when first created and will NOT be updated to this episode's measured fps.")
+    parser.add_argument("--allow-failed", action="store_true", help="Allow converting an episode whose success.txt is marked 'Failure' (blocked by default to avoid accidentally training on a known-bad episode).")
     args = parser.parse_args()
 
-    convert_episode(args.episode_dir, args.repo_id, args.task, args.push, args.append)
+    convert_episode(args.episode_dir, args.repo_id, args.task, args.push, args.append, args.allow_failed)
