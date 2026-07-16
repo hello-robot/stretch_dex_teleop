@@ -237,7 +237,7 @@ if __name__ == '__main__':
     try: 
         while True:
             loop_timer.start_of_iteration()
-            markers = webcam_aruco_detector.process_next_frame()
+            markers, color_image = webcam_aruco_detector.process_next_frame()
             if use_multiprocessing: 
                 goal_array = goal_from_markers.get_goal_array(markers)
                 if goal_array is not None: 
