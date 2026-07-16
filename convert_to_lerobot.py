@@ -58,7 +58,15 @@ def compute_recording_fps(rows, nominal_fps=NOMINAL_FPS):
     return fps
 
 
-def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
+def _exit_dataset_already_exists(dataset_root, repo_id):
+    print(f"Error: a dataset already exists at {dataset_root}")
+    print(f"  --repo-id '{repo_id}' has already been used to create a LeRobot dataset.")
+    print("  Choose a different --repo-id, remove the existing dataset directory to overwrite it,")
+    print("  or pass --append to add this episode to the existing dataset.")
+    sys.exit(1)
+
+
+def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False):
     episode_path = Path(episode_dir)
     csv_path = episode_path / "trajectory.csv"
 
@@ -97,21 +105,41 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
         }
     }
 
-    # Initialize the LeRobot dataset
-    # By default, it will save to ~/.cache/huggingface/lerobot
-    try:
-        dataset = LeRobotDataset.create(
-            repo_id=repo_id,
-            fps=fps,
-            features=features,
-        )
-    except FileExistsError:
-        existing_path = HF_LEROBOT_HOME / repo_id
-        print(f"Error: a dataset already exists at {existing_path}")
-        print(f"  --repo-id '{repo_id}' has already been used to create a LeRobot dataset.")
-        print("  Choose a different --repo-id, or remove the existing dataset directory if you want to overwrite it.")
-        print("  (Appending additional episodes to an existing dataset is not yet supported by this script.)")
-        sys.exit(1)
+    # By default, the dataset lives at $HF_LEROBOT_HOME/{repo_id}. resume()
+    # (unlike create()) requires this path explicitly, and checking it
+    # ourselves lets us fail fast locally instead of resume() falling through
+    # to a slow, network-dependent Hugging Face Hub lookup.
+    dataset_root = HF_LEROBOT_HOME / repo_id
+    dataset_exists = (dataset_root / "meta" / "info.json").exists()
+
+    if append:
+        if not dataset_exists:
+            print(f"Error: --append was given but no existing dataset was found at {dataset_root}")
+            print(f"  Remove --append to create a new dataset at --repo-id '{repo_id}'.")
+            sys.exit(1)
+
+        dataset = LeRobotDataset.resume(repo_id=repo_id, root=dataset_root)
+
+        if dataset.fps != fps:
+            print(f"Note: this episode's measured fps ({fps}) differs from the dataset's existing fps ({dataset.fps}).")
+            print(f"      LeRobot only supports a single fps per dataset, so this episode's frames will be")
+            print(f"      timestamped using the dataset's original fps={dataset.fps}, not the freshly measured value.")
+    else:
+        if dataset_exists:
+            _exit_dataset_already_exists(dataset_root, repo_id)
+
+        # Initialize the LeRobot dataset
+        # By default, it will save to ~/.cache/huggingface/lerobot
+        try:
+            dataset = LeRobotDataset.create(
+                repo_id=repo_id,
+                fps=fps,
+                features=features,
+            )
+        except FileExistsError:
+            # Defensive: covers a race between the exists-check above and this
+            # call (e.g. something else created the dataset in between).
+            _exit_dataset_already_exists(dataset_root, repo_id)
 
     for i, row in enumerate(rows):
         # Parse observation state
@@ -173,6 +201,7 @@ if __name__ == "__main__":
     parser.add_argument("--repo-id", type=str, default="your-username/stretch_dex_teleop", help="Hugging Face repo ID (e.g. username/dataset_name)")
     parser.add_argument("--task", type=str, default="teleoperation_task", help="Text description of the task being performed")
     parser.add_argument("--push", action="store_true", help="Push to Hugging Face Hub after converting")
+    parser.add_argument("--append", action="store_true", help="Append this episode to an existing dataset at --repo-id instead of erroring. Note: the dataset's fps is fixed when first created and will NOT be updated to this episode's measured fps.")
     args = parser.parse_args()
 
-    convert_episode(args.episode_dir, args.repo_id, args.task, args.push)
+    convert_episode(args.episode_dir, args.repo_id, args.task, args.push, args.append)
