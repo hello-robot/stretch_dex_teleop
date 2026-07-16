@@ -182,3 +182,5 @@ cython_debug/
 
 # Recorded teleoperation datasets
 data/
+# docs
+DATA_RECORDER_STATUS.md

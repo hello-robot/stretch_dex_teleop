@@ -12,16 +12,71 @@ except ImportError as exc:
     print("Failed to import LeRobotDataset:")
     raise
 
+# Nominal fps the webcam targets (see webcam_teleop_interface.py). Used as a
+# fallback and as the baseline for the deviation warning below.
+NOMINAL_FPS = 30
+FPS_DEVIATION_WARNING_THRESHOLD = 0.15
+
+
+def compute_recording_fps(rows, nominal_fps=NOMINAL_FPS):
+    """Estimate the actual frame rate from trajectory.csv's timestamp column.
+
+    trajectory.csv's timestamps reflect real wall-clock time between
+    successfully recorded frames, including any gaps from frames the
+    recorder skipped upstream (e.g. a failed IK solve or markers out of
+    view) -- those frames are silently dropped and never advance
+    frame_index. A deviation from the nominal fps here more often means
+    "some frames were dropped" than "the camera ran this slowly
+    throughout". LeRobot 0.6.0 only supports a single fps per dataset
+    (each frame's timestamp is assigned as frame_index / fps), so this is
+    still an average approximation, not a frame-accurate fix.
+    """
+    if len(rows) < 2:
+        print(f"Warning: only {len(rows)} frame(s) recorded, cannot measure fps. Using nominal fps={nominal_fps}.")
+        return nominal_fps
+
+    first_ts = float(rows[0]['timestamp'])
+    last_ts = float(rows[-1]['timestamp'])
+    duration = last_ts - first_ts
+    if duration <= 0:
+        print(f"Warning: recorded timestamps span {duration:.4f}s, cannot measure fps. Using nominal fps={nominal_fps}.")
+        return nominal_fps
+
+    measured_fps = (len(rows) - 1) / duration
+    fps = max(1, round(measured_fps))
+
+    print(f"Measured recording rate: {measured_fps:.2f} fps over {duration:.2f}s ({len(rows)} frames). "
+          f"Using fps={fps} for this dataset (nominal webcam target is {nominal_fps} fps).")
+
+    deviation = abs(measured_fps - nominal_fps) / nominal_fps
+    if deviation > FPS_DEVIATION_WARNING_THRESHOLD:
+        print(f"WARNING: measured fps deviates {deviation * 100:.0f}% from the nominal {nominal_fps} fps target.")
+        print("         This usually means frames were dropped during recording (e.g. markers out of view,")
+        print("         failed IK solves) rather than the camera/loop running this slowly throughout.")
+        print("         A single average fps is still an approximation of the real per-frame timing.")
+
+    return fps
+
+
 def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
     episode_path = Path(episode_dir)
     csv_path = episode_path / "trajectory.csv"
-    
+
     if not csv_path.exists():
         print(f"Error: {csv_path} does not exist.")
         return
 
     print(f"Converting episode from {episode_dir}...")
-    
+
+    with open(csv_path, 'r') as f:
+        rows = list(csv.DictReader(f))
+
+    if not rows:
+        print(f"Error: {csv_path} contains no frames.")
+        return
+
+    fps = compute_recording_fps(rows)
+
     # Define features based on our data recorder
     # Ensure image size matches what your webcam produces!
     features = {
@@ -47,7 +102,7 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
     try:
         dataset = LeRobotDataset.create(
             repo_id=repo_id,
-            fps=30,
+            fps=fps,
             features=features,
         )
     except FileExistsError:
@@ -58,52 +113,50 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub):
         print("  (Appending additional episodes to an existing dataset is not yet supported by this script.)")
         sys.exit(1)
 
-    with open(csv_path, 'r') as f:
-        reader = csv.DictReader(f)
-        for i, row in enumerate(reader):
-            # Parse observation state
-            state = torch.tensor([
-                float(row['base_x']),
-                float(row['base_y']),
-                float(row['base_theta']),
-                float(row['lift']),
-                float(row['arm']),
-                float(row['wrist_roll']),
-                float(row['wrist_pitch']),
-                float(row['wrist_yaw']),
-                float(row['gripper_width_m'])
-            ], dtype=torch.float32)
+    for i, row in enumerate(rows):
+        # Parse observation state
+        state = torch.tensor([
+            float(row['base_x']),
+            float(row['base_y']),
+            float(row['base_theta']),
+            float(row['lift']),
+            float(row['arm']),
+            float(row['wrist_roll']),
+            float(row['wrist_pitch']),
+            float(row['wrist_yaw']),
+            float(row['gripper_width_m'])
+        ], dtype=torch.float32)
 
-            # Parse action
-            action = torch.tensor([
-                float(row['base_x_joint']),
-                float(row['base_y_joint']),
-                float(row['base_theta_joint']),
-                float(row['joint_lift']),
-                float(row['joint_arm_l0']),
-                float(row['joint_wrist_roll']),
-                float(row['joint_wrist_pitch']),
-                float(row['joint_wrist_yaw']),
-                float(row['commanded_gripper_width_m'])
-            ], dtype=torch.float32)
+        # Parse action
+        action = torch.tensor([
+            float(row['base_x_joint']),
+            float(row['base_y_joint']),
+            float(row['base_theta_joint']),
+            float(row['joint_lift']),
+            float(row['joint_arm_l0']),
+            float(row['joint_wrist_roll']),
+            float(row['joint_wrist_pitch']),
+            float(row['joint_wrist_yaw']),
+            float(row['commanded_gripper_width_m'])
+        ], dtype=torch.float32)
 
-            # Parse image
-            img_path = episode_path / row['image_teleop_webcam']
-            # LeRobot uses PIL Images for add_frame
-            with Image.open(img_path) as image:
-                img = image.convert("RGB").copy()
+        # Parse image
+        img_path = episode_path / row['image_teleop_webcam']
+        # LeRobot uses PIL Images for add_frame
+        with Image.open(img_path) as image:
+            img = image.convert("RGB").copy()
 
-            frame_dict = {
-                "observation.image": img,
-                "observation.state": state,
-                "action": action,
-                "task": task_name
-            }
+        frame_dict = {
+            "observation.image": img,
+            "observation.state": state,
+            "action": action,
+            "task": task_name
+        }
 
-            dataset.add_frame(frame_dict)
-            
-            if i % 10 == 0:
-                print(f"Processed frame {i}...")
+        dataset.add_frame(frame_dict)
+
+        if i % 10 == 0:
+            print(f"Processed frame {i}...")
 
     # Save the episode
     dataset.save_episode()
