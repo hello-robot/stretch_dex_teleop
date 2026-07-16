@@ -8,7 +8,7 @@ import csv
 from pathlib import Path
 
 class EpisodeRecorder:
-    def __init__(self, data_dir="data", fps=30):
+    def __init__(self, data_dir="data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
@@ -23,6 +23,7 @@ class EpisodeRecorder:
         self.image_queue = queue.Queue()
         self.writer_thread = None
         self._stop_writer = False
+        self._failed_image_writes = set()
 
     def start_episode(self):
         if self.is_recording:
@@ -32,16 +33,17 @@ class EpisodeRecorder:
         now = time.strftime("%Y-%m-%d--%H-%M-%S")
         self.episode_dir = self.data_dir / f"episode_{now}"
         self.episode_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.image_dir = self.episode_dir / "images"
         self.image_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.records = []
         self.frame_index = 0
         self.start_time = time.time()
         self.is_recording = True
-        
+
         self._stop_writer = False
+        self._failed_image_writes = set()
         self.writer_thread = threading.Thread(target=self._image_writer_worker)
         self.writer_thread.start()
         print(f"Started recording episode to {self.episode_dir}")
@@ -49,12 +51,22 @@ class EpisodeRecorder:
     def stop_episode(self):
         if not self.is_recording:
             return
-        
+
         self.is_recording = False
         self._stop_writer = True
         if self.writer_thread is not None:
             self.writer_thread.join()
-            
+
+        if self._failed_image_writes:
+            print(f"WARNING: {len(self._failed_image_writes)} image write(s) failed during this episode. "
+                  f"Dropping the corresponding frame(s) from trajectory.csv so it never references a missing file:")
+            for image_filename in sorted(self._failed_image_writes):
+                print(f"  {image_filename}")
+            self.records = [
+                r for r in self.records
+                if Path(r['image_teleop_webcam']).name not in self._failed_image_writes
+            ]
+
         if len(self.records) > 0:
             csv_path = self.episode_dir / "trajectory.csv"
             with open(csv_path, 'w', newline='') as f:
@@ -64,7 +76,7 @@ class EpisodeRecorder:
             print(f"Saved {len(self.records)} frames to {csv_path}")
         else:
             print("No frames recorded, episode discarded.")
-            
+
         self.records = []
 
     def add(self, timestamp, measured_state, commanded_joints, teleop_image):
@@ -73,10 +85,10 @@ class EpisodeRecorder:
 
         image_filename = f"teleop_webcam_{self.frame_index:06d}.jpg"
         image_path = self.image_dir / image_filename
-        
+
         # Push to background thread
         if teleop_image is not None:
-            self.image_queue.put((str(image_path), teleop_image.copy()))
+            self.image_queue.put((str(image_path), teleop_image.copy(), image_filename))
         
         rel_image_path = f"images/{image_filename}"
         
@@ -126,11 +138,27 @@ class EpisodeRecorder:
         while not self._stop_writer or not self.image_queue.empty():
             try:
                 # Wait for up to 0.1 seconds for a new item
-                image_path, image = self.image_queue.get(timeout=0.1)
-                cv2.imwrite(image_path, image)
-                self.image_queue.task_done()
+                image_path, image, image_filename = self.image_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
+
+            try:
+                success = cv2.imwrite(image_path, image)
+            except Exception as e:
+                # cv2.imwrite() normally reports failure by returning False rather
+                # than raising, but guard against unexpected exceptions too -- an
+                # uncaught one here would silently kill this thread and leave every
+                # later frame in the episode unwritten without any warning.
+                print(f"ERROR: exception while writing image {image_path}: {e}")
+                success = False
+            else:
+                if not success:
+                    print(f"ERROR: failed to write image {image_path}")
+
+            if not success:
+                self._failed_image_writes.add(image_filename)
+
+            self.image_queue.task_done()
 
     def _convert_gripper_pos_to_m(self, pos):
         if not hasattr(self, 'gripper_conversion') or not self.gripper_conversion:
