@@ -116,6 +116,16 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
 
     fps = compute_recording_fps(rows)
 
+    # Older episodes were recorded before the wrist camera (D405) existed, so
+    # trajectory.csv's image_wrist_cam column is either non-empty for every
+    # row or absent/empty for every row -- never a mix within one episode
+    # (see recorder.py's add()/stop_episode()).
+    has_wrist_camera = bool(rows[0].get('image_wrist_cam'))
+    if has_wrist_camera:
+        print("Detected wrist camera (D405) images in this episode -- including as observation.images.wrist_cam.")
+    else:
+        print("No wrist camera images in this episode -- observation.images.wrist_cam will not be included.")
+
     # Define features based on our data recorder
     # Ensure image size matches what your webcam produces!
     features = {
@@ -135,6 +145,12 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
             "names": ["base_x", "base_y", "base_theta", "lift", "arm", "wrist_roll", "wrist_pitch", "wrist_yaw", "gripper_width_m"],
         }
     }
+    if has_wrist_camera:
+        features["observation.images.wrist_cam"] = {
+            "dtype": "video",
+            "shape": (3, 480, 640), # (C, H, W) -- D405 wrist camera, different resolution from the external webcam
+            "names": ["c", "h", "w"],
+        }
 
     # By default, the dataset lives at $HF_LEROBOT_HOME/{repo_id}. resume()
     # (unlike create()) requires this path explicitly, and checking it
@@ -211,6 +227,11 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
             "action": action,
             "task": task_name
         }
+
+        if has_wrist_camera:
+            wrist_img_path = episode_path / row['image_wrist_cam']
+            with Image.open(wrist_img_path) as wrist_image:
+                frame_dict["observation.images.wrist_cam"] = wrist_image.convert("RGB").copy()
 
         dataset.add_frame(frame_dict)
 
