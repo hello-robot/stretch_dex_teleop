@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
     import recorder as rec
     import wrist_camera as wc
+    import head_camera as hc
     import cv2
     import time
 
@@ -75,6 +76,13 @@ if __name__ == '__main__':
         print(f"Warning: Could not initialize wrist camera (D405): {e}")
         print("         Recording will proceed without wrist camera images.")
         wrist_cam = None
+
+    try:
+        head_cam = hc.HeadCamera()
+    except Exception as e:
+        print(f"Warning: Could not initialize head camera (D435i): {e}")
+        print("         Recording will proceed without head camera images.")
+        head_cam = None
 
     def prompt_for_episode_success(display_image):
         # Blocks on y/n, matching stretch_ai's ask_for_success() convention.
@@ -109,6 +117,7 @@ if __name__ == '__main__':
         loop_timer.start_of_iteration()
         markers, teleop_image = webcam_aruco_detector.process_next_frame()
         wrist_image = wrist_cam.get_next_frame() if wrist_cam is not None else None
+        head_image = head_cam.get_next_frame() if head_cam is not None else None
         goal_dict = goal_from_markers.get_goal_dict(markers)
 
         commanded_joints = None
@@ -125,7 +134,8 @@ if __name__ == '__main__':
                 measured_state=measured_state,
                 commanded_joints=commanded_joints,
                 teleop_image=teleop_image,
-                wrist_image=wrist_image
+                wrist_image=wrist_image,
+                head_image=head_image
             )
             
         display_image = teleop_image.copy() if teleop_image is not None else np.zeros((720, 1280, 3), dtype=np.uint8)

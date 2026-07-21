@@ -116,15 +116,21 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
 
     fps = compute_recording_fps(rows)
 
-    # Older episodes were recorded before the wrist camera (D405) existed, so
-    # trajectory.csv's image_wrist_cam column is either non-empty for every
-    # row or absent/empty for every row -- never a mix within one episode
-    # (see recorder.py's add()/stop_episode()).
+    # Older episodes were recorded before the wrist/head cameras existed, so
+    # trajectory.csv's image_wrist_cam/image_head_cam columns are each either
+    # non-empty for every row or absent/empty for every row -- never a mix
+    # within one episode (see recorder.py's add()/stop_episode()).
     has_wrist_camera = bool(rows[0].get('image_wrist_cam'))
     if has_wrist_camera:
         print("Detected wrist camera (D405) images in this episode -- including as observation.images.wrist_cam.")
     else:
         print("No wrist camera images in this episode -- observation.images.wrist_cam will not be included.")
+
+    has_head_camera = bool(rows[0].get('image_head_cam'))
+    if has_head_camera:
+        print("Detected head camera (D435i) images in this episode -- including as observation.images.head_cam.")
+    else:
+        print("No head camera images in this episode -- observation.images.head_cam will not be included.")
 
     # Define features based on our data recorder
     # Ensure image size matches what your webcam produces!
@@ -149,6 +155,12 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
         features["observation.images.wrist_cam"] = {
             "dtype": "video",
             "shape": (3, 480, 640), # (C, H, W) -- D405 wrist camera, different resolution from the external webcam
+            "names": ["c", "h", "w"],
+        }
+    if has_head_camera:
+        features["observation.images.head_cam"] = {
+            "dtype": "video",
+            "shape": (3, 640, 480), # (C, H, W) -- D435i head camera, captured at 640x480 then rotated 90 degrees
             "names": ["c", "h", "w"],
         }
 
@@ -232,6 +244,11 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
             wrist_img_path = episode_path / row['image_wrist_cam']
             with Image.open(wrist_img_path) as wrist_image:
                 frame_dict["observation.images.wrist_cam"] = wrist_image.convert("RGB").copy()
+
+        if has_head_camera:
+            head_img_path = episode_path / row['image_head_cam']
+            with Image.open(head_img_path) as head_image:
+                frame_dict["observation.images.head_cam"] = head_image.convert("RGB").copy()
 
         dataset.add_frame(frame_dict)
 

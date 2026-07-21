@@ -16,6 +16,7 @@ class EpisodeRecorder:
         self.episode_dir = None
         self.image_dir = None
         self.wrist_image_dir = None
+        self.head_image_dir = None
         
         self.records = []
         self.frame_index = 0
@@ -40,6 +41,9 @@ class EpisodeRecorder:
 
         self.wrist_image_dir = self.episode_dir / "wrist_images"
         self.wrist_image_dir.mkdir(parents=True, exist_ok=True)
+
+        self.head_image_dir = self.episode_dir / "head_images"
+        self.head_image_dir.mkdir(parents=True, exist_ok=True)
 
         self.records = []
         self.frame_index = 0
@@ -70,6 +74,7 @@ class EpisodeRecorder:
                 r for r in self.records
                 if Path(r['image_teleop_webcam']).name not in self._failed_image_writes
                 and Path(r['image_wrist_cam']).name not in self._failed_image_writes
+                and Path(r['image_head_cam']).name not in self._failed_image_writes
             ]
 
         if len(self.records) > 0:
@@ -89,7 +94,7 @@ class EpisodeRecorder:
 
         self.records = []
 
-    def add(self, timestamp, measured_state, commanded_joints, teleop_image, wrist_image=None):
+    def add(self, timestamp, measured_state, commanded_joints, teleop_image, wrist_image=None, head_image=None):
         if not self.is_recording:
             return
 
@@ -111,6 +116,15 @@ class EpisodeRecorder:
             wrist_image_path = self.wrist_image_dir / wrist_image_filename
             self.image_queue.put((str(wrist_image_path), wrist_image.copy(), wrist_image_filename))
             rel_wrist_image_path = f"wrist_images/{wrist_image_filename}"
+
+        # Head camera (D435i) -- optional, same async queue/writer thread and
+        # write-failure detection as the wrist camera and teleop webcam above.
+        rel_head_image_path = ""
+        if head_image is not None:
+            head_image_filename = f"head_cam_{self.frame_index:06d}.jpg"
+            head_image_path = self.head_image_dir / head_image_filename
+            self.image_queue.put((str(head_image_path), head_image.copy(), head_image_filename))
+            rel_head_image_path = f"head_images/{head_image_filename}"
 
         # Calculate absolute base joint targets if not present
         base_theta_joint = measured_state['base']['theta']
@@ -150,6 +164,7 @@ class EpisodeRecorder:
             # Modalities
             'image_teleop_webcam': rel_image_path,
             'image_wrist_cam': rel_wrist_image_path,
+            'image_head_cam': rel_head_image_path,
         }
         
         self.records.append(record)
