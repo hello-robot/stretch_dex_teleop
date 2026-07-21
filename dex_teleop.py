@@ -58,6 +58,7 @@ if __name__ == '__main__':
 
 
     import recorder as rec
+    import wrist_camera as wc
     import cv2
     import time
 
@@ -67,6 +68,13 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Warning: Could not get gripper conversion params: {e}")
         episode_recorder.gripper_conversion = None
+
+    try:
+        wrist_cam = wc.WristCamera()
+    except Exception as e:
+        print(f"Warning: Could not initialize wrist camera (D405): {e}")
+        print("         Recording will proceed without wrist camera images.")
+        wrist_cam = None
 
     def prompt_for_episode_success(display_image):
         # Blocks on y/n, matching stretch_ai's ask_for_success() convention.
@@ -100,22 +108,24 @@ if __name__ == '__main__':
     while True:
         loop_timer.start_of_iteration()
         markers, teleop_image = webcam_aruco_detector.process_next_frame()
+        wrist_image = wrist_cam.get_next_frame() if wrist_cam is not None else None
         goal_dict = goal_from_markers.get_goal_dict(markers)
-        
+
         commanded_joints = None
         if goal_dict:
             if print_goal:
                 print('goal_dict =')
                 pp.pprint(goal_dict)
             commanded_joints = gripper_to_goal.update_goal(**goal_dict)
-            
+
         if episode_recorder.is_recording and commanded_joints is not None:
             measured_state = gripper_to_goal.robot.get_status()
             episode_recorder.add(
                 timestamp=time.time(),
                 measured_state=measured_state,
                 commanded_joints=commanded_joints,
-                teleop_image=teleop_image
+                teleop_image=teleop_image,
+                wrist_image=wrist_image
             )
             
         display_image = teleop_image.copy() if teleop_image is not None else np.zeros((720, 1280, 3), dtype=np.uint8)

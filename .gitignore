@@ -184,3 +184,4 @@ cython_debug/
 data/
 # docs
 DATA_RECORDER_STATUS.md
+STRETCH_AI_COMPARISON.md
