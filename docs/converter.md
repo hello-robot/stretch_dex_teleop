@@ -12,7 +12,7 @@ Developed and validated against `lerobot==0.6.0`. LeRobot's dataset API has chan
 ```bash
 pip install lerobot==0.6.0
 ```
-*(To push directly to the Hugging Face Hub, run `huggingface-cli login` first.)*
+*(To push directly to the Hugging Face Hub, run `hf auth login` first.)*
 
 ## Running the Conversion
 
@@ -62,8 +62,18 @@ python convert_to_lerobot.py --episode-dir data/episode_2026-07-15--13-47-54 --r
 
 ## Pushing to Hugging Face Hub
 
+Requires a Hugging Face account and a write-access token — run `hf auth login` once beforehand.
+
 ```bash
-python convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<repo-id>" --push
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<your-hf-username/stretch_dex_teleop>" --push
 ```
-Works the same whether you just created the dataset or appended to it.
+Works the same whether you just created the dataset or appended to it. `--repo-id` must start with your actual HF username (or an org you belong to), or the push fails with a permission error.
+
+**By default this pushes the dataset as public** — visible and downloadable by anyone. Pass `--private` to push it as a private dataset instead:
+```bash
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "your-hf-username/stretch_dex_teleop" --push --private
+```
+Worth deciding deliberately rather than by default, especially since recorded episodes include real camera footage of your workspace.
+
+**`dataset.finalize()` is always called before pushing** — without it, `meta/episodes/*.parquet` never gets written to disk (it's only flushed on `finalize()`, or as a fallback safety net when the Python process eventually exits), and a dataset pushed without it can't be loaded back. See [data_recording.md](data_recording.md#3-pushing-to-hugging-face-hub) for how to verify a push actually worked, and how to visualize a pushed (or local-only) dataset.
 

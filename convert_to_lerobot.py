@@ -95,7 +95,7 @@ def check_success_label(episode_path, allow_failed):
         sys.exit(1)
 
 
-def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, allow_failed=False):
+def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, allow_failed=False, private=False):
     episode_path = Path(episode_dir)
     csv_path = episode_path / "trajectory.csv"
 
@@ -257,11 +257,22 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
 
     # Save the episode
     dataset.save_episode()
+
+    # Must happen before push_to_hub() (or any other process reads this dataset
+    # back): save_episode() alone doesn't write meta/episodes/*.parquet -- that
+    # only happens on finalize() (or, as a fallback safety net, whenever this
+    # process eventually exits and __del__ runs). Without an explicit call here,
+    # push_to_hub() would upload a dataset missing its episode metadata, since it
+    # runs inside this same process, before that safety net ever fires.
+    dataset.finalize()
     print(f"Episode saved locally to {dataset.root}")
 
     if push_to_hub:
-        print("Pushing to Hugging Face Hub...")
-        dataset.push_to_hub()
+        if private:
+            print(f"Pushing to Hugging Face Hub as a PRIVATE dataset ({repo_id})...")
+        else:
+            print(f"Pushing to Hugging Face Hub as a PUBLIC dataset ({repo_id}) -- pass --private to keep it private instead.")
+        dataset.push_to_hub(private=True if private else None)
         print("Push complete!")
 
 if __name__ == "__main__":
@@ -270,8 +281,9 @@ if __name__ == "__main__":
     parser.add_argument("--repo-id", type=str, default="your-username/stretch_dex_teleop", help="Hugging Face repo ID (e.g. username/dataset_name)")
     parser.add_argument("--task", type=str, default="teleoperation_task", help="Text description of the task being performed")
     parser.add_argument("--push", action="store_true", help="Push to Hugging Face Hub after converting")
+    parser.add_argument("--private", action="store_true", help="When pushing (--push), create/push the dataset as private instead of public. Has no effect without --push.")
     parser.add_argument("--append", action="store_true", help="Append this episode to an existing dataset at --repo-id instead of erroring. Note: the dataset's fps is fixed when first created and will NOT be updated to this episode's measured fps.")
     parser.add_argument("--allow-failed", action="store_true", help="Allow converting an episode whose success.txt is marked 'Failure' (blocked by default to avoid accidentally training on a known-bad episode).")
     args = parser.parse_args()
 
-    convert_episode(args.episode_dir, args.repo_id, args.task, args.push, args.append, args.allow_failed)
+    convert_episode(args.episode_dir, args.repo_id, args.task, args.push, args.append, args.allow_failed, args.private)
