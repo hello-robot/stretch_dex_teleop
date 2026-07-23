@@ -48,19 +48,11 @@ Run everything below **on your development machine**, not the robot.
 Use a **dedicated virtualenv** for this — `lerobot`'s dataset API has changed across
 versions before, so keeping it isolated and pinned matters.
 
-```bash
+```bashe
 python3 -m venv ~/.venv-lerobot
 source ~/.venv-lerobot/bin/activate
 pip install lerobot==0.6.0   
 ```
-
-If you want to push datasets to the Hugging Face Hub:
-```bash
-hf auth login
-```
-
-You only need `convert_to_lerobot.py` from this repo on the dev machine (plus the copied
-episode directories) — nothing else here has any LeRobot/robot-hardware dependency.
 
 ### 2.2 Every time you convert
 
@@ -70,22 +62,16 @@ episode directories) — nothing else here has any LeRobot/robot-hardware depend
 source ~/.venv-lerobot/bin/activate
 
 # Create a brand-new dataset from the first episode:
-python convert_to_lerobot.py \
+python3 convert_to_lerobot.py \
   --episode-dir data/episode_2026-07-21--11-06-36 \
   --repo-id "<repo-id>" \
   --task "pick_up_the_mug"
 
 # Add more episodes to that same dataset:
-python convert_to_lerobot.py \
+python3 convert_to_lerobot.py \
   --episode-dir data/episode_2026-07-21--11-30-02 \
   --repo-id "<repo-id>" \
   --append
-
-# Push to the Hugging Face Hub once you're done:
-python convert_to_lerobot.py \
-  --episode-dir data/episode_2026-07-21--11-06-36 \
-  --repo-id "<repo-id>" \
-  --push
 ```
 
 `<repo-id>` is a user-defined name. It is used as the output folder name for the converted dataset.
@@ -113,12 +99,12 @@ Paste a Hugging Face access token with **write** permission (generate one at `hu
 
 Add `--push` to a conversion command (works whether you're creating a new dataset or appending to one):
 ```bash
-python convert_to_lerobot.py --episode-dir data/episode_2026-07-21--11-06-36 --repo-id "<your-hf-username/stretch_dex_teleop>" --push
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-21--11-06-36 --repo-id "<your-hf-username/stretch_dex_teleop>" --push
 ```
 
 **By default this pushes as public** — visible and downloadable by anyone. Pass `--private` to keep it private instead:
 ```bash
-python convert_to_lerobot.py --episode-dir data/episode_2026-07-21--11-06-36 --repo-id "your-hf-username/stretch_dex_teleop" --push --private
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-21--11-06-36 --repo-id "your-hf-username/stretch_dex_teleop" --push --private
 ```
 Worth deciding deliberately rather than by default — recorded episodes include real camera footage of your workspace. `--repo-id` must start with your actual HF username (or an org you belong to), or the push fails with a permission error.
 
@@ -161,7 +147,7 @@ This also works on datasets that were never pushed at all — pass `--root <loca
 
 
 <div align="center">
-  <img src="../images/visualize_dataset_rerun.png" alt="base" width="400"/>
+  <img src="../images/visualize_dataset_rerun.png" alt="base" width="800"/>
 </div>
 
 ---

@@ -2,6 +2,21 @@
 
 Detail doc for `recorder.py` / `dex_teleop.py`.
 
+## Output Layout
+
+Each recording produces one episode folder containing three image folders, plus [`trajectory.csv`](#csv-schema-trajectorycsv) and [`success.txt`](#successfailure-labeling-successtxt).
+
+```
+data/episode_YYYY-MM-DD--HH-MM-SS/
+├── trajectory.csv    # one row per recorded frame
+├── success.txt       # "Success" or "Failure" (omitted if --skip-success was used)
+├── images/           # external webcam
+├── wrist_images/     # D405 wrist camera
+└── head_images/      # D435i head camera
+```
+
+See [data_recording.md](data_recording.md#4-filesystem-layout) for the fully expanded tree (individual filenames) and the equivalent layout after conversion to LeRobot format.
+
 ## Architecture
 
 The recorder is designed specifically to prevent any latency spikes in the tight real-time control loop:
@@ -40,7 +55,7 @@ Downstream models typically expect the physical gripper width in meters, not raw
 - `commanded_gripper_width_m`: Commanded physical distance between the gripper fingers in meters.
 
 
-## Success/Failure Labeling
+## Success/Failure Labeling (`success.txt`)
 
 After stopping a non-empty recording, you're asked `Was the episode successful? (y/n)` (the window freezes on the last frame; any key but `y`/`n` is ignored). The answer is written as `success.txt` (`"Success"` or `"Failure"`) into the episode directory. Pass `--skip-success` to disable the prompt entirely (no `success.txt` gets written). Quitting with `q` while recording stops and labels it the same way as pressing `r`.
 
