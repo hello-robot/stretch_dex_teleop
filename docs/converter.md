@@ -17,16 +17,16 @@ pip install lerobot==0.6.0
 ## Running the Conversion
 
 ```bash
-python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<repo-id>"
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<your-hf-username>/dataset-name"
 ```
 
-By default this creates a brand-new local dataset at `~/.cache/huggingface/lerobot/<repo-id>`. Running it again against the same `--repo-id` without `--append` fails with a clear error rather than overwriting or corrupting anything — see **Multi-Episode Datasets** below.
+By default this creates a brand-new local dataset at `~/.cache/huggingface/lerobot/<your-hf-username>/dataset-name`. Running it again against the same `--repo-id` without `--append` fails with a clear error rather than overwriting or corrupting anything — see **Multi-Episode Datasets** below.
 
 > **Note:** you may notice an empty `images/` folder alongside `videos/` in the converted dataset. It's harmless internal scaffolding from LeRobot's own pipeline (a staging area it uses for non-streaming video encoding), not something our script creates or needs. All actual frame data lives in `videos/`. Safe to ignore or delete.
 
 Set the task description recorded with each frame using `--task` (defaults to `"teleoperation_task"`):
 ```bash
-python convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<repo-id>" --task "pick_up_the_mug"
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug"
 ```
 
 ## Success/Failure Safety Check
@@ -53,10 +53,9 @@ Automatic, no flag needed — there's currently no way to override the measured 
 
 Pass `--append` to add an episode to a dataset that already exists at `--repo-id`:
 ```bash
-python convert_to_lerobot.py --episode-dir data/episode_2026-07-15--13-47-54 --repo-id "<repo-id>" --append
-
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-15--13-47-54 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug" --append
 ```
-- Without `--append`, converting into an existing `--repo-id` always fails with a clear error (protects against mixing episodes into the wrong dataset via a typo'd or reused repo-id).
+- **`--append` is required on every episode after the first one**, and only the first one. The dataset's very first episode must *not* have `--append` (nothing exists yet to append to); every episode after that *must* have it, or the run fails with a clear "dataset already exists" error rather than silently overwriting or corrupting anything.
 - With `--append` against a `--repo-id` that does **not** exist yet, it also fails with a clear error — drop `--append` to create it first.
 - **A dataset's `fps` is fixed forever by whichever episode created it.** Every appended episode's frames are timestamped using that original fps, not its own freshly measured rate. If an appended episode's measured rate differs meaningfully, the script prints a note — but still proceeds, since there's no other option within LeRobot's dataset format.
 
@@ -65,15 +64,34 @@ python convert_to_lerobot.py --episode-dir data/episode_2026-07-15--13-47-54 --r
 Requires a Hugging Face account and a write-access token — run `hf auth login` once beforehand.
 
 ```bash
-python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<your-hf-username/stretch_dex_teleop>" --push
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug" --push
 ```
 Works the same whether you just created the dataset or appended to it. `--repo-id` must start with your actual HF username (or an org you belong to), or the push fails with a permission error.
 
 **By default this pushes the dataset as public** — visible and downloadable by anyone. Pass `--private` to push it as a private dataset instead:
 ```bash
-python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "your-hf-username/stretch_dex_teleop" --push --private
+python3 convert_to_lerobot.py --episode-dir data/episode_2026-07-13--14-22-05 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug" --push --private
 ```
 Worth deciding deliberately rather than by default, especially since recorded episodes include real camera footage of your workspace.
+
+### Pushing a multi-episode dataset
+
+There's no "push only" mode — every run must process exactly one `--episode-dir` (create or append), and `--push` just adds an upload on top of whatever that run does. Two things follow from this:
+
+- **To push a dataset with more than one episode, combine `--append` and `--push` on the same command** for whichever episode you're adding when you want to push. You can't split "append episode 2" and "push" into two separate commands: dropping `--append` on the second command fails (dataset already exists), and repeating `--append` with the same `--episode-dir` just to trigger a push would re-add that episode's frames a second time, duplicating them.
+- **`--push` uploads your entire current local dataset, not just the episode from that command** — so you don't need to push after every append. You can build up several episodes locally (no `--push` at all) and only add `--push` on the last one; that single push still uploads everything accumulated so far.
+
+Example: build a 3-episode dataset, pushing only once at the end:
+```bash
+# Episode 1: create, no push yet
+python3 convert_to_lerobot.py --episode-dir data/episode_1 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug"
+
+# Episode 2: append, still no push
+python3 convert_to_lerobot.py --episode-dir data/episode_2 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug" --append
+
+# Episode 3: append AND push -- uploads all 3 episodes at once
+python3 convert_to_lerobot.py --episode-dir data/episode_3 --repo-id "<your-hf-username>/dataset-name" --task "pick_up_the_mug" --append --push --private
+```
 
 **`dataset.finalize()` is always called before pushing** — without it, `meta/episodes/*.parquet` never gets written to disk (it's only flushed on `finalize()`, or as a fallback safety net when the Python process eventually exits), and a dataset pushed without it can't be loaded back. See [data_recording.md](data_recording.md#3-pushing-to-hugging-face-hub) for how to verify a push actually worked, and how to visualize a pushed (or local-only) dataset.
 
