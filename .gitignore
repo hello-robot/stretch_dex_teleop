@@ -182,7 +182,3 @@ cython_debug/
 
 # Recorded teleoperation datasets
 data/
-# docs
-data_recorder_status.md
-stretch_ai_comparison.md
-known_limitations.md
