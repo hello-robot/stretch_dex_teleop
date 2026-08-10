@@ -33,7 +33,7 @@ python3 dex_teleop.py
 ```
 
 <div align="center">
-  <img src="../data/dex_teleop_gui.png" alt="base" width="700"/>
+  <img src="../images/dex_teleop_gui.png" alt="base" width="700"/>
 </div>
 
 |Key  | Action | 
@@ -104,7 +104,7 @@ lerobot-dataset-viz --repo-id <your-hf-username>/dataset-name --episode-index 0
 ```
 
 <div align="center">
-  <img src="../data/visualize_dataset_rerun.png" alt="base" width="700"/>
+  <img src="../images/visualize_dataset_rerun.png" alt="base" width="700"/>
 </div>
 ---
 
