@@ -14,7 +14,11 @@ This pipeline spans **two separate machines**:
 
 ## 1. Recording an episode (Stretch Robot)
 
-Run everything below **on the robot itself**, over SSH or on its own desktop.
+Run everything below **on the robot itself**, with visual/GUI access to it — `dex_teleop.py` opens a `cv2` window showing the webcam feed and recording status, and `r`/`y`/`n`/`q` are only read while that window has keyboard focus. In practice that means:
+- **On the robot's own desktop** (monitor + keyboard plugged into it) — the straightforward option.
+- **Over SSH with X11 forwarding** (`ssh -X` or `-Y`) from a machine running an X server — works, but live video over a forwarded X11 display is often laggy.
+
+A plain SSH session with no X11 forwarding has no display to open this window on, so it won't work at all.
 
 ### 1.1 One-time setup
 
