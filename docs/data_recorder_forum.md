@@ -106,6 +106,7 @@ lerobot-dataset-viz --repo-id <your-hf-username>/dataset-name --episode-index 0
 <div align="center">
   <img src="../images/visualize_dataset_rerun.png" alt="base" width="700"/>
 </div>
+
 ---
 
-Full docs — architecture, complete CSV schema, converter internals, known limitations — are here: [`docs/data_recording.md`](https://github.com/hello-robot/stretch_dex_teleop/blob/feature/data-recorder/docs/data_recording.md). Currently on `feature/data-recorder` ([PR #13](https://github.com/hello-robot/stretch_dex_teleop/pull/13)) — try it out, feedback welcome.
+Full docs — architecture, complete CSV schema, converter internals, known limitations — are here: [`docs/data_recording.md`](https://github.com/hello-robot/stretch_dex_teleop/blob/feature/data-recorder/docs/data_recording.md).
