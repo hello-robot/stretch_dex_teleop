@@ -133,13 +133,7 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
         print("No head camera images in this episode -- observation.images.head_cam will not be included.")
 
     # Define features based on our data recorder
-    # Ensure image size matches what your webcam produces!
     features = {
-        "observation.image": {
-            "dtype": "video",
-            "shape": (3, 1080, 1920), # (C, H, W)
-            "names": ["c", "h", "w"],
-        },
         "observation.state": {
             "dtype": "float32",
             "shape": (9,),
@@ -227,14 +221,7 @@ def convert_episode(episode_dir, repo_id, task_name, push_to_hub, append=False, 
             float(row['commanded_gripper_width_m'])
         ], dtype=torch.float32)
 
-        # Parse image
-        img_path = episode_path / row['image_teleop_webcam']
-        # LeRobot uses PIL Images for add_frame
-        with Image.open(img_path) as image:
-            img = image.convert("RGB").copy()
-
         frame_dict = {
-            "observation.image": img,
             "observation.state": state,
             "action": action,
             "task": task_name

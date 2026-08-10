@@ -133,7 +133,6 @@ if __name__ == '__main__':
                 timestamp=time.time(),
                 measured_state=measured_state,
                 commanded_joints=commanded_joints,
-                teleop_image=teleop_image,
                 wrist_image=wrist_image,
                 head_image=head_image
             )

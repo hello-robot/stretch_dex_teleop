@@ -41,7 +41,9 @@ This is per-episode, not automatic batch filtering — there's no glob/multi-dir
 
 ## Wrist and Head Camera Support
 
-If the episode's `trajectory.csv` has wrist and/or head camera images (`image_wrist_cam`/`image_head_cam` non-empty), the converter automatically adds the corresponding video feature(s) — `observation.images.wrist_cam` (640×480) and/or `observation.images.head_cam` (640×480, rotated) — alongside the existing `observation.image` (1920×1080, the external webcam), following LeRobot's own multi-camera naming convention (`observation.images.<camera_name>`). Episodes recorded before a given camera existed still convert exactly as before, with no corresponding feature. Nothing to pass for this — detected automatically per episode, per camera.
+If the episode's `trajectory.csv` has wrist and/or head camera images (`image_wrist_cam`/`image_head_cam` non-empty), the converter automatically adds the corresponding video feature(s) — `observation.images.wrist_cam` (640×480) and/or `observation.images.head_cam` (640×480, rotated) — following LeRobot's own multi-camera naming convention (`observation.images.<camera_name>`). Episodes recorded before a given camera existed still convert exactly as before, with no corresponding feature. Nothing to pass for this — detected automatically per episode, per camera.
+
+The external webcam is never included, even for older episodes that still have `image_teleop_webcam` data on disk — it only sees the operator's tongs, not the task or scene, so it isn't a useful training observation. The recorder no longer saves it at all going forward.
 
 ## Automatic Frame Rate Measurement
 

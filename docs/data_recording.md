@@ -1,6 +1,6 @@
 # Stretch Dex Teleop Data Collection
 
-A lightweight data recorder for `stretch_dex_teleop`. It captures synchronized robot telemetry, commanded teleoperation actions, and camera imagery (external webcam, wrist and head cameras), and converts it into a [LeRobot](https://github.com/huggingface/lerobot) dataset for imitation learning.
+A lightweight data recorder for `stretch_dex_teleop`. It captures synchronized robot telemetry, commanded teleoperation actions, and camera imagery from the wrist and head cameras, and converts it into a [LeRobot](https://github.com/huggingface/lerobot) dataset for imitation learning. The external webcam still drives teleop control live, but its frames aren't saved — it only sees the operator's tongs, not the task, so it wasn't a useful training observation.
 
 This pipeline spans **two separate machines**:
 
@@ -176,13 +176,8 @@ This also works on datasets that were never pushed at all — pass `--root <loca
 ```
 data/episode_2026-07-21--11-06-36/
 ├── trajectory.csv        # 64 rows: timestamp, measured state, commanded actions,
-│                         # image_teleop_webcam + image_wrist_cam + image_head_cam paths
+│                         # image_wrist_cam + image_head_cam paths
 ├── success.txt           # "Success" or "Failure" (omitted if --skip-success was used)
-├── images/               # external ArUco webcam, one JPEG per recorded frame
-│   ├── teleop_webcam_000000.jpg
-│   ├── teleop_webcam_000001.jpg
-│   ├── ...
-│   └── teleop_webcam_000063.jpg
 ├── wrist_images/         # D405 wrist camera, only present if the camera was detected
 │   ├── wrist_cam_000000.jpg
 │   ├── wrist_cam_000001.jpg
@@ -212,9 +207,6 @@ data/episode_2026-07-21--11-06-36/
 │       └── file-000.parquet         # observation.state / action / timestamp / indices
 │                                     # (one row per frame, across all appended episodes)
 └── videos/
-    ├── observation.image/            # external webcam, AV1-encoded
-    │   └── chunk-000/
-    │       └── file-000.mp4          # 1920x1080
     ├── observation.images.wrist_cam/ # wrist camera, AV1-encoded (only if any
     │   └── chunk-000/                # converted episode had wrist camera data)
     │       └── file-000.mp4          # 640x480

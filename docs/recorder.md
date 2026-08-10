@@ -4,16 +4,17 @@ Detail doc for `recorder.py` / `dex_teleop.py`.
 
 ## Output Layout
 
-Each recording produces one episode folder containing three image folders, plus [`trajectory.csv`](#csv-schema-trajectorycsv) and [`success.txt`](#successfailure-labeling-successtxt).
+Each recording produces one episode folder containing two image folders, plus [`trajectory.csv`](#csv-schema-trajectorycsv) and [`success.txt`](#successfailure-labeling-successtxt).
 
 ```
 data/episode_YYYY-MM-DD--HH-MM-SS/
 ├── trajectory.csv    # one row per recorded frame
 ├── success.txt       # "Success" or "Failure" (omitted if --skip-success was used)
-├── images/           # external webcam
 ├── wrist_images/     # D405 wrist camera
 └── head_images/      # D435i head camera
 ```
+
+The external webcam still runs live every tick to drive teleop control (it's the ArUco-tracking input, not optional), but its frames are no longer saved — it only sees the operator's tongs, not the task or scene, so it wasn't a useful training observation.
 
 See [data_recording.md](data_recording.md#4-filesystem-layout) for the fully expanded tree (individual filenames) and the equivalent layout after conversion to LeRobot format.
 
@@ -32,7 +33,6 @@ The recorder is designed specifically to prevent any latency spikes in the tight
 ### Meta Data
 - `timestamp`: Time elapsed since the start of the recording (in seconds).
 - `frame_index`: Sequential ID of the recorded frame.
-- `image_teleop_webcam`: Relative path to the saved external webcam RGB image (e.g. `images/teleop_webcam_000000.jpg`).
 - `image_wrist_cam`: Relative path to the saved wrist camera (D405) RGB image (e.g. `wrist_images/wrist_cam_000000.jpg`), or an empty string if no wrist camera was detected. Every row in an episode has this filled in, or none do — never a mix.
 - `image_head_cam`: Relative path to the saved head camera (D435i) RGB image (e.g. `head_images/head_cam_000000.jpg`), already rotated 90°. Same empty-string/all-or-nothing behavior as `image_wrist_cam`.
 

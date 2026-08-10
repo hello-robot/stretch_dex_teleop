@@ -14,7 +14,6 @@ class EpisodeRecorder:
         
         self.is_recording = False
         self.episode_dir = None
-        self.image_dir = None
         self.wrist_image_dir = None
         self.head_image_dir = None
         
@@ -35,9 +34,6 @@ class EpisodeRecorder:
         now = time.strftime("%Y-%m-%d--%H-%M-%S")
         self.episode_dir = self.data_dir / f"episode_{now}"
         self.episode_dir.mkdir(parents=True, exist_ok=True)
-
-        self.image_dir = self.episode_dir / "images"
-        self.image_dir.mkdir(parents=True, exist_ok=True)
 
         self.wrist_image_dir = self.episode_dir / "wrist_images"
         self.wrist_image_dir.mkdir(parents=True, exist_ok=True)
@@ -72,8 +68,7 @@ class EpisodeRecorder:
                 print(f"  {image_filename}")
             self.records = [
                 r for r in self.records
-                if Path(r['image_teleop_webcam']).name not in self._failed_image_writes
-                and Path(r['image_wrist_cam']).name not in self._failed_image_writes
+                if Path(r['image_wrist_cam']).name not in self._failed_image_writes
                 and Path(r['image_head_cam']).name not in self._failed_image_writes
             ]
 
@@ -94,18 +89,9 @@ class EpisodeRecorder:
 
         self.records = []
 
-    def add(self, timestamp, measured_state, commanded_joints, teleop_image, wrist_image=None, head_image=None):
+    def add(self, timestamp, measured_state, commanded_joints, wrist_image=None, head_image=None):
         if not self.is_recording:
             return
-
-        image_filename = f"teleop_webcam_{self.frame_index:06d}.jpg"
-        image_path = self.image_dir / image_filename
-
-        # Push to background thread
-        if teleop_image is not None:
-            self.image_queue.put((str(image_path), teleop_image.copy(), image_filename))
-
-        rel_image_path = f"images/{image_filename}"
 
         # Wrist camera (D405) -- optional, only present once WristCamera is wired
         # up by the caller. Goes through the same async queue/writer thread as
@@ -162,7 +148,6 @@ class EpisodeRecorder:
             'commanded_gripper_width_m': self._convert_gripper_pos_to_m(commanded_joints.get('stretch_gripper', measured_state['end_of_arm']['stretch_gripper']['pos'])),
             
             # Modalities
-            'image_teleop_webcam': rel_image_path,
             'image_wrist_cam': rel_wrist_image_path,
             'image_head_cam': rel_head_image_path,
         }
