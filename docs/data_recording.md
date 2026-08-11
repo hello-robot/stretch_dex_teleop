@@ -1,4 +1,4 @@
-# Stretch Dex Teleop Data Collection
+# Stretch 3 Dex Teleop Data Collection
 
 A lightweight data recorder for `stretch_dex_teleop`. It captures synchronized robot telemetry, commanded teleoperation actions, and camera imagery from the wrist and head cameras, and converts it into a [LeRobot](https://github.com/huggingface/lerobot) dataset for imitation learning. The external webcam still drives teleop control live, but its frames aren't saved — it only sees the operator's tongs, not the task, so it wasn't a useful training observation.
 
