@@ -30,6 +30,9 @@ Follow **[Setting Up Dex Teleop](../README.md#setting-up-dex-teleop)** in the ma
 cd ~/stretch_dex_teleop
 python3 dex_teleop.py
 ```
+<div align="center">
+  <img src="../images/dex_teleop_gui.png" alt="base" width="800"/>
+</div>
 
 This will open the **Dex Teleop** GUI:
 | Key | Action |
