@@ -317,6 +317,8 @@ class GripperToGoal:
 
             #####################################################
 
+            return new_goal_configuration
+
 
         
 if __name__ == '__main__':

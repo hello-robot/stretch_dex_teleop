@@ -17,6 +17,7 @@ if __name__ == '__main__':
     left_handed = args.left
     using_stretch_2 = args.stretch_2
     slide_lift_range = args.slide_lift_range
+    record_success = not args.skip_success
         
     # The 'default', 'slow', 'fast', and 'max' options are defined by
     # Hello Robot. The 'fastest_stretch_2' option has been specially tuned for
@@ -56,19 +57,106 @@ if __name__ == '__main__':
     goal_from_markers = gt.GoalFromMarkers(dt.teleop_origin, center_wrist_position, slide_lift_range=slide_lift_range)
 
 
+    import recorder as rec
+    import wrist_camera as wc
+    import head_camera as hc
+    import cv2
+    import time
+
+    episode_recorder = rec.EpisodeRecorder()
+    try:
+        episode_recorder.gripper_conversion = gripper_to_goal.robot.end_of_arm.motors['stretch_gripper'].params['gripper_conversion']
+    except Exception as e:
+        print(f"Warning: Could not get gripper conversion params: {e}")
+        episode_recorder.gripper_conversion = None
+
+    try:
+        wrist_cam = wc.WristCamera()
+    except Exception as e:
+        print(f"Warning: Could not initialize wrist camera (D405): {e}")
+        print("         Recording will proceed without wrist camera images.")
+        wrist_cam = None
+
+    try:
+        head_cam = hc.HeadCamera()
+    except Exception as e:
+        print(f"Warning: Could not initialize head camera (D435i): {e}")
+        print("         Recording will proceed without head camera images.")
+        head_cam = None
+
+    def prompt_for_episode_success(display_image):
+        # Blocks on y/n, matching stretch_ai's ask_for_success() convention.
+        # Any other key is ignored and it keeps waiting.
+        prompt_image = display_image.copy() if display_image is not None else np.zeros((720, 1280, 3), dtype=np.uint8)
+        cv2.putText(prompt_image, "Was the episode successful? (y/n)", (30, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+        cv2.imshow('Dex Teleop', prompt_image)
+        print("Was the episode successful? (y/n)")
+        while True:
+            key = cv2.waitKey(0) & 0xFF
+            if key == ord('y'):
+                return True
+            elif key == ord('n'):
+                return False
+
+    def stop_current_episode(display_image):
+        had_frames = episode_recorder.frame_index > 0
+        success = None
+        if had_frames and record_success:
+            success = prompt_for_episode_success(display_image)
+        episode_recorder.stop_episode(success=success)
+
     loop_timer = lt.LoopTimer()
     print_timing = False
     print_goal = False
     
+    print("Teleop ready. Press 'r' in the OpenCV window to toggle recording. Press 'q' to quit.")
+    if record_success:
+        print("After stopping a non-empty recording, you'll be asked whether it succeeded (y/n). Pass --skip-success to disable this.")
+    
     while True:
         loop_timer.start_of_iteration()
-        markers = webcam_aruco_detector.process_next_frame()
+        markers, teleop_image = webcam_aruco_detector.process_next_frame()
+        wrist_image = wrist_cam.get_next_frame() if wrist_cam is not None else None
+        head_image = head_cam.get_next_frame() if head_cam is not None else None
         goal_dict = goal_from_markers.get_goal_dict(markers)
+
+        commanded_joints = None
         if goal_dict:
             if print_goal:
                 print('goal_dict =')
                 pp.pprint(goal_dict)
-            gripper_to_goal.update_goal(**goal_dict)
+            commanded_joints = gripper_to_goal.update_goal(**goal_dict)
+
+        if episode_recorder.is_recording and commanded_joints is not None:
+            measured_state = gripper_to_goal.robot.get_status()
+            episode_recorder.add(
+                timestamp=time.time(),
+                measured_state=measured_state,
+                commanded_joints=commanded_joints,
+                wrist_image=wrist_image,
+                head_image=head_image
+            )
+            
+        display_image = teleop_image.copy() if teleop_image is not None else np.zeros((720, 1280, 3), dtype=np.uint8)
+        status_text = "RECORDING (Press 'r' to stop, 'q' to quit)" if episode_recorder.is_recording else "Not Recording (Press 'r' to start, 'q' to quit)"
+        color = (0, 0, 255) if episode_recorder.is_recording else (0, 255, 0)
+        cv2.putText(display_image, status_text, (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+        
+        display_image = cv2.resize(display_image, (1280, 720))
+        cv2.imshow('Dex Teleop', display_image)
+            
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('r'):
+            if episode_recorder.is_recording:
+                stop_current_episode(display_image)
+            else:
+                episode_recorder.start_episode()
+        elif key == ord('q'):
+            if episode_recorder.is_recording:
+                stop_current_episode(display_image)
+            cv2.destroyAllWindows()
+            break
+            
         loop_timer.end_of_iteration()
         if print_timing: 
             loop_timer.pretty_print()

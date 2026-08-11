@@ -1,0 +1,15 @@
+# Known Limitations
+
+Gotchas worth knowing before you train on this data. See [recorder.md](recorder.md) and [converter.md](converter.md) for the full context behind each.
+
+- **`base_x_joint` / `base_y_joint` are not real commanded values.** This teleop scheme controls the mobile base by rotation only (`joint_mobile_base_rotate_by`) — there's no code path that ever commands base translation. These two CSV columns, and the corresponding `action` dimensions in the converted dataset, currently just mirror the measured `base_x`/`base_y` odometry rather than operator intent. `base_theta_joint` is unaffected and is a genuine derived command. Treat `base_x_joint`/`base_y_joint` as placeholders, not signal, if training on this data.
+
+- **Dataset frame timing is an approximation, not frame-accurate.** LeRobot only supports a single `fps` per dataset. The converter measures and uses the real average rate rather than a hardcoded nominal value (a large improvement), but it's still one number applied uniformly across the whole episode. If frame drops were clustered (one long gap vs. many small ones), per-frame timestamps in the resulting dataset won't reflect that unevenness.
+
+- **Frames are silently dropped during recording** whenever ArUco markers are briefly out of view or an IK solve fails. Generally correct behavior (no garbage frames), but it's the main reason measured recording rates tend to come out well below the webcam's nominal 30 fps — a low measured fps doesn't mean the camera or robot loop is actually running slowly.
+
+- **`robot_type` is not currently set** in the converted dataset's metadata (`info.json` shows `"robot_type": null`) — deliberate, not an oversight. It matters for LeRobot's own dataset-aggregation tooling, its native recording script's robot-mismatch check, and multi-embodiment policy inputs, but this pipeline doesn't use any of those paths yet. Worth revisiting once robot identity should matter to a trained policy (e.g. combining Stretch 2 and Stretch 3 data) — this codebase already distinguishes the two generations elsewhere (`--stretch_2` flag).
+
+- **Image resolution is hardcoded** in `convert_to_lerobot.py` (`(3, 480, 640)` wrist camera, `(3, 640, 480)` head camera — the head camera's dimensions are swapped relative to its raw capture size since its image is rotated 90° before saving), matching each camera's configured resolution in `wrist_camera.py` / `head_camera.py`. Change a camera's resolution and this script needs a matching update, or the converter fails immediately on the first frame with a clear shape-mismatch error (it won't silently corrupt the dataset — LeRobot validates every frame's shape against the declared feature schema).
+
+- **The external webcam's frames are captured live but never saved or converted.** It still runs every tick to drive teleop control (the ArUco-tracking input), but the recorder no longer writes its images to disk, and the converter has no `observation.image` feature at all. It only ever showed the operator's tongs, not the task or scene, so it wasn't a useful training observation anyway.

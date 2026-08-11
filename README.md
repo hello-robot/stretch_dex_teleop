@@ -183,6 +183,10 @@ For example, for the left-hand robot, you can run the following command to try s
 python3 dex_teleop.py --left
 ```
 
+## Recording Data for Imitation Learning
+
+This repository also includes a lightweight data recorder that captures synchronized robot telemetry, commanded actions, and camera imagery during teleoperation, and converts it into a [LeRobot](https://github.com/huggingface/lerobot) dataset. See the [docs/](docs/data_recording.md) folder to get started.
+
 ## Troubleshooting
 
 If you're having trouble with the steps in the guide, please check the following tips:
